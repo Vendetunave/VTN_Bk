@@ -57,6 +57,7 @@ class HomeController extends Controller
             'config' => $config,
             'anios' => $anios,
         ];
+        dd($response);
         return $response;
     }
     public function config(){
