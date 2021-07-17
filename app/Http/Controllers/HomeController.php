@@ -45,6 +45,7 @@ class HomeController extends Controller
         $bannersMobile = Banners::select('id', 'url')->where('type', 2)->orderBy('posicion')->get();
         $noticias = Noticias::all();
         $config = Config::select('link_video')->first();
+
         $anios = Vehicles::select('vehicles.ano')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
             ->join('marcas AS MA', 'MA.id', 'M.marca_id')
@@ -52,10 +53,12 @@ class HomeController extends Controller
             ->groupBy('vehicles.ano')
             ->orderBy('vehicles.ano', 'DESC')
             ->get();
+
         $marcasFil = Marcas::select('id', 'nombre', 'categoria_id')->where('categoria_id', 1)->get();
+
         $response = [
             'categories' => $categories,
-            'vehiculosPromocion' => $vehiculosPromocion,
+            'vehiculos_promocion' => $vehiculosPromocion,
             'banners' => $banners,
             'bannersMobile' => $bannersMobile,
             'marcas' => $marcas,
@@ -64,7 +67,9 @@ class HomeController extends Controller
             'config' => $config,
             'anios' => $anios,
         ];
+
         return $response;
+
     }
     public function config(){
         
