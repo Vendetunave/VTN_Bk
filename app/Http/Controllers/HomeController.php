@@ -19,28 +19,18 @@ class HomeController extends Controller
     {
         $categories = TipoVehiculos::all();
         $marcas = Marcas::where('visibility', 1)->get();
-        $vehiculosPromocion = Vehicles::select(
-            'vehicles.id',
-            'vehicles.url',
-            'vehicles.title',
-            'vehicles.precio',
-            'vehicles.ano',
-            'vehicles.kilometraje',
-            'I.nombre AS nameImage',
-            'I.extension',
-            'I.new_image',
-            'UC.nombre AS labelCiudad'
-        )
-            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
-            ->join('imagenes AS I', 'I.id', 'IV.id_image')
-            ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
-            ->where('promocion', 1)
-            ->where('aprobado_promocion', 1)
-            ->where('activo', 1)
-            ->orderBy('vehicles.fecha_creacion', 'DESC')
-            ->groupBy('vehicles.id')
-            ->limit(15)
-            ->get();
+        $vehiculosPromocion = Vehicles::select('vehicles.id', 'vehicles.url', 'vehicles.title', 'vehicles.precio', 'vehicles.ano', 'vehicles.kilometraje', 'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'UC.nombre AS labelCiudad')
+                                    ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+                                    ->join('imagenes AS I', 'I.id', 'IV.id_image')
+                                    ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+                                    ->where('promocion', 1)
+                                    ->where('aprobado_promocion', 1)
+                                    ->where('activo', 1)
+                                    ->orderBy('vehicles.fecha_creacion', 'DESC')
+                                    ->groupBy('vehicles.id')
+                                    ->limit(15)
+                                    ->get();
+
         $banners = Banners::select('id', 'url')->where('type', 1)->orderBy('posicion')->get();
         $bannersMobile = Banners::select('id', 'url')->where('type', 2)->orderBy('posicion')->get();
         $noticias = Noticias::all();
@@ -53,7 +43,7 @@ class HomeController extends Controller
             ->groupBy('vehicles.ano')
             ->orderBy('vehicles.ano', 'DESC')
             ->get();
-
+        
         $marcasFil = Marcas::select('id', 'nombre', 'categoria_id')->where('categoria_id', 1)->get();
 
         $response = [
@@ -67,9 +57,7 @@ class HomeController extends Controller
             'config' => $config,
             'anios' => $anios,
         ];
-
         return $response;
-
     }
     public function config(){
         
