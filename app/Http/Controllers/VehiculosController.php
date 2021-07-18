@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\Vehicles;
+use App\Models\imagenes;
+
+use DateTime;
 
 class VehiculosController extends Controller
 {
@@ -116,5 +119,91 @@ class VehiculosController extends Controller
         ];
 
         return $response;
+    }
+    public function detalle($slug){
+
+            $arrayUrl = explode('-', $slug);
+            $id = $arrayUrl[COUNT($arrayUrl) - 1];
+
+            $vehiculo = Vehicles::select(
+                'vehicles.*',
+                'C.nombre AS combustibleLabel',
+                'CO.nombre AS colorLabel',
+                'T.nombre AS transmisionLabel',
+                'M.nombre AS modeloLabel',
+                'M.id AS modeloId',
+                'MA.nombre AS marcaLabel',
+                'MA.id AS marcaId',
+                'TV.nombre AS tipoLabel',
+                'TV.id AS tipoId',
+                'TM.nombre AS tipoMotoLabel',
+                'TM.id AS tipoMotoId',
+                'UC.nombre AS ciudadLabel',
+                'UD.nombre AS departamentoLabel',
+                'TP.nombre AS tipoPrecioLabel'
+            )
+                ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
+                ->leftJoin('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')
+                ->join('combustibles AS C', 'C.id', 'vehicles.combustible')
+                ->join('colores AS CO', 'CO.id', 'vehicles.color')
+                ->join('transmisiones AS T', 'T.id', 'vehicles.transmision')
+                ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+                ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+                ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+                ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
+                ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
+                ->where('vehicles.id', $id)
+                ->first();
+
+            $urlCategory = str_replace(' ', '-', $vehiculo->tipoLabel) . '_' . $vehiculo->tipoId;
+            $urlTypeMoto = str_replace(' ', '-', $vehiculo->tipoMotoLabel) . '_' . $vehiculo->tipoMotoId;
+            $urlMarca = str_replace(' ', '-', $vehiculo->marcaLabel) . '_' . $vehiculo->marcaId;
+            $urlModelo = str_replace(' ', '-', $vehiculo->modeloLabel) . '_' . $vehiculo->modeloId;
+
+            $date1 = new DateTime($vehiculo->fecha_publicacion);
+            $date2 = new DateTime();
+            $diff = $date1->diff($date2);
+            $diasPublicado = $diff->days;
+
+            $imagenes = imagenes::select(
+                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".") AS url'),
+                'imagenes.extension',
+                'imagenes.new_image'
+            )
+                ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
+                ->where('IV.id_vehicle', $id)
+                ->orderBy('imagenes.order', 'ASC')
+                ->get();
+
+            $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
+                ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+                ->join('imagenes AS I', 'I.id', 'IV.id_image')
+                ->where('activo', 1)
+                ->where('vehicles.modelo_id', $vehiculo->modelo_id)
+                ->where('vehicles.id', '<>', $vehiculo->id)
+                ->groupBy('vehicles.id')
+                ->limit(10)
+                ->get();
+
+            $vehiculosRelacionadosCount = Vehicles::where('activo', 1)
+                ->where('vehicles.modelo_id', $vehiculo->modelo_id)
+                ->where('vehicles.id', '<>', $vehiculo->id)
+                ->count();
+
+            $response = [
+                'status' => true,
+                'vehiculo' => $vehiculo,
+                'imagenes' => $imagenes,
+                'vehiculosRelacionados' => $vehiculosRelacionados,
+                'vehiculosRelacionadosCount' => $vehiculosRelacionadosCount,
+                'diasPublicado' => $diasPublicado,
+                
+                'urlCategory' => $urlCategory,
+                'urlTypeMoto' => $urlTypeMoto,
+                'urlMarca' => $urlMarca,
+                'urlModelo' => $urlModelo
+            ];
+
+            return $response;
     }
 }
