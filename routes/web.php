@@ -24,4 +24,5 @@ $router->group(['prefix' => 'auth'], function () {
 $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('home', 'HomeController@show');
     $router->get('config', 'HomeController@config');
+    $router->get('vehiculos', 'VehiculosController@find');
 });
