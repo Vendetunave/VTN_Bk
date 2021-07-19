@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\Pregunta;
+use App\Models\Tags;
 
 class ComunidadController extends Controller
 {
@@ -22,8 +23,12 @@ class ComunidadController extends Controller
         $preguntas = $preguntas->groupBy('pregunta.id')
             ->orderBy('pregunta.fecha', 'DESC')
             ->offset(($page - 1) * 10)->limit(10)->get();
+        $tags = Tags::select( 'tags.id', 'tags.tag', 'PT.pregunta_id' )
+            ->leftJoin('preguntas_tags  AS PT', 'PT.tag_id', 'tags.id')
+            ->get();
         $result = [
             'preguntas' => $preguntas,
+            'tags' => $tags,
         ];
         return $result;
         
