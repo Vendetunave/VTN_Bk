@@ -4,8 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class preguntas_tags extends Model
+class Dealerships extends Model
 {
     //
-    protected $table = 'preguntas_tags';
 }
