@@ -19,13 +19,29 @@ class OtrosController extends Controller
      */
     public function getServicios(Request $request)
     {
-        $page = 1;
-        $servicios = Servicios::select('servicios.*', 'TS.nombre AS servicio')
-        ->leftJoin('tipos_servicio AS TS', 'TS.id', 'servicios.tipo_servicio_id');
+        $page = $request->query('page') ? $request->query('page') : 1;
+        $servicios = Servicios::select('servicios.*', 'TS.nombre AS servicio', 'UC.nombre AS labelCiudad')
+        ->leftJoin('tipos_servicio AS TS', 'TS.id', 'servicios.tipo_servicio_id')
+        ->join('ubicacion_ciudades AS UC', 'UC.id', 'servicios.ciudad_id');
+
+        $total_records = count($servicios->get());
+        $total_all = $servicios->get();
+
         $servicios = $servicios->offset(($page - 1) * 10)->limit(10)->get();
 
+        $collection = collect($total_all);
+        $filteredMarcas = $collection;
+
+        $contadores = array(
+            'servicios' => $filteredMarcas->countBy('servicio'),
+            'ciudades' => $filteredMarcas->countBy('labelCiudad')
+        );
+
         $result = [
-            'servicios' => $servicios
+            'pagina' => $page,
+            'servicios' => $servicios,
+            'contadores' => $contadores,
+            'total_records' => $total_records
         ];
 
         return $result;
