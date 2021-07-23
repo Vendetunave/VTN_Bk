@@ -69,13 +69,13 @@ class VehiculosController extends Controller
             $result->where('vehicles.tipo_vehiculo', 1);
         }
         if ($filtros['marca']) {
-            $result->where('MA.id', $filtros['marca']);
+            $result->where('MA.nombre', $filtros['marca']);
         }
         if ($filtros['modelo']) {
-            $result->where('vehicles.modelo_id', $filtros['modelo']);
+            $result->where('M.nombre', $filtros['modelo']);
         }
         if ($filtros['transmision']) {
-            $result->where('vehicles.transmision', $filtros['transmision']);
+            $result->where('TA.nombre', $filtros['transmision']);
         }
         switch ($filtros['orden']) {
             case 1:
