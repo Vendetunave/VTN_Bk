@@ -42,9 +42,9 @@ class VehiculosController extends Controller
             'transmision' => $request->query('transmision') ? $request->query('transmision') : null,
             'kilometraje' => $request->query('kilometraje') ? $request->query('kilometraje') : null,
             'precio' => $request->query('precio') ? $request->query('precio') : null,
-            'orden' => $request->query('orden') ? $request->query('orden') : null
+            'orden' => $request->query('orden') ? $request->query('orden') : null,
+            'page' => $request->query('page') ? $request->query('page') : 1
         );
-        $page = 1;
         $result = Vehicles::select(
                 'vehicles.id', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
                 'vehicles.ano', 'vehicles.kilometraje', 'UC.nombre AS labelCiudad',
@@ -60,7 +60,7 @@ class VehiculosController extends Controller
             ->where('vehicles.activo', 1);
         //Ubicacion Filter
         if( $filtros['ubicacion'] ){
-            $result->where('UD.id', $filtros['ubicacion']);
+            $result->where('UC.nombre', $filtros['ubicacion']);
         }
         //Cateoria Filter
         if ($filtros['categoria']) {
@@ -97,9 +97,12 @@ class VehiculosController extends Controller
             $estado = ($estado == 2) ? 'Usado' : 'Nuevo';
             $result->where('vehicles.condicion', $filtros['estado']);
         }
-        $result = $result->groupBy('vehicles.id')->offset(($page - 1) * 20)->limit(20)->get();
-        
-        $collection = collect($result);
+        $total_records = count($result->groupBy('vehicles.id')->get());
+        $total_all = $result->groupBy('vehicles.id')->get();
+        $result = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
+
+        //Filtros complete
+        $collection = collect($total_all);
         $filteredMarcas = $collection;
 
         $contadores = array(
@@ -112,7 +115,8 @@ class VehiculosController extends Controller
         );
 
         $response = [
-            'page' => $page,
+            'page' => $filtros['page'],
+            'total_records' => $total_records,
             'vehicles' => $result,
             'filtros' => $filtros,
             'contadores' => $contadores
