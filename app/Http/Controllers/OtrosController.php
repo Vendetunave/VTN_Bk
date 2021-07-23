@@ -20,9 +20,21 @@ class OtrosController extends Controller
     public function getServicios(Request $request)
     {
         $page = $request->query('page') ? $request->query('page') : 1;
+        
+        $servicio = $request->query('servicio') ? $request->query('servicio') : null;
+        $ciudad = $request->query('ciudad') ? $request->query('ciudad') : null;
+
         $servicios = Servicios::select('servicios.*', 'TS.nombre AS servicio', 'UC.nombre AS labelCiudad')
         ->leftJoin('tipos_servicio AS TS', 'TS.id', 'servicios.tipo_servicio_id')
         ->join('ubicacion_ciudades AS UC', 'UC.id', 'servicios.ciudad_id');
+
+        if($servicio){
+            $servicios->where('TS.nombre', $servicio);
+        }
+
+        if($ciudad){
+            $servicios->where('UC.nombre', $ciudad);
+        }
 
         $total_records = count($servicios->get());
         $total_all = $servicios->get();
