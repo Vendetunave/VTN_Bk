@@ -17,10 +17,11 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->group(['prefix' => 'auth'], function () {
-    //$router->get('home', 'UserController@show');
+$router->group(['prefix' => 'auth'], function () use ($router) {
+    $router->post('login', 'AuthController@login');
+    $router->get('me', 'AuthController@me');
 });
-
+//Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('home', 'HomeController@show');
     $router->get('config', 'HomeController@config');

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Pregunta;
 use App\Models\Tags;
 
+use Illuminate\Support\Facades\Auth;
+
 class ComunidadController extends Controller
 {
     /**
@@ -14,6 +16,11 @@ class ComunidadController extends Controller
      *
      * @return void
      */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function show()
     {
         $page = 1;
