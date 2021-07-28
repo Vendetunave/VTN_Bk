@@ -20,6 +20,10 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('login', 'AuthController@login');
     $router->get('me', 'AuthController@me');
+    $router->get('profile/{id}', 'UsuarioController@profile');
+    $router->get('publicaciones/{id}', 'UsuarioController@publicaciones');
+    $router->get('favoritos/{id}', 'UsuarioController@favoritos');
+    $router->get('busquedas/{id}', 'UsuarioController@busquedas');
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
