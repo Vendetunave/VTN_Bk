@@ -52,8 +52,8 @@ class UsuarioController extends Controller
             'busquedasTotal' => $busquedasTotal,
             'page' => $page * 1,
         ];
-        return $result;
 
+        return $result;
     }
     public function publicaciones(){
 

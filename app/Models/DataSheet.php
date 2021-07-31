@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Accesorios extends Model
+class DataSheet extends Model
 {
     //
+    protected $table = 'data_sheet';
 }

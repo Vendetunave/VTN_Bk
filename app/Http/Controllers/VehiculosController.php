@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\Models\Vehicles;
 use App\Models\imagenes;
+use App\Models\DataSheet;
+use App\Models\Accesorios;
 
 use DateTime;
 
@@ -209,5 +211,136 @@ class VehiculosController extends Controller
             ];
 
             return $response;
+    }
+    public function fichas_tecnicas(Request $request){
+        $filtros = array(
+            'categoria' => $request->query('categoria') ? $request->query('categoria') : null,
+            'ubicacion' => $request->query('ubicacion') ? $request->query('ubicacion') : null,
+            'marca' => $request->query('marca') ? $request->query('marca') : null,
+            'motor' => $request->query('motor') ? $request->query('motor') : null,
+            'modelo' => $request->query('modelo') ? $request->query('modelo') : null,
+            'estado' => $request->query('estado') ? $request->query('estado') : null,
+            'transmision' => $request->query('transmision') ? $request->query('transmision') : null,
+            'kilometraje' => $request->query('kilometraje') ? $request->query('kilometraje') : null,
+            'precio' => $request->query('precio') ? $request->query('precio') : null,
+            'orden' => $request->query('orden') ? $request->query('orden') : null,
+            'page' => $request->query('page') ? $request->query('page') : 1
+        );
+        $result = DataSheet::select(
+            'data_sheet.id',
+            'data_sheet.title',
+            'data_sheet.description',
+            'data_sheet.price',
+            'data_sheet.year',
+            'data_sheet.autonomy',
+            'data_sheet.engine',
+            'data_sheet.power',
+            'C.nombre AS combustibleLabel',
+            'T.nombre AS transmisionLabel',
+            'I.name AS nameImage',
+            'I.ext AS extension',
+            'TP.nombre AS tipo',
+            \DB::raw('2 AS new_image')
+        )
+            ->join('images_data_sheet AS I', 'I.datasheet_id', \DB::raw('data_sheet.id AND I.order = 1'))
+            ->join('combustibles AS C', 'C.id', 'data_sheet.fuel_id')
+            ->join('transmisiones AS T', 'T.id', 'data_sheet.transmission_id')
+            ->join('tipo_vehiculos AS TP', 'TP.id', 'data_sheet.vehicle_type_id')
+            ->where('data_sheet.active', 1);
+        
+        switch ($filtros['orden']) {
+            case 3:
+                $result->orderBy('data_sheet.price', 'ASC');
+                break;
+            case 4:
+                $result->orderBy('data_sheet.price', 'DESC');
+                break;
+            default:
+                $result->orderBy('data_sheet.id', 'DESC');
+        }
+
+        $total_records = count($result->groupBy('data_sheet.id')->get());
+        $total_all = $result->groupBy('data_sheet.id')->get();
+        $result = $result->groupBy('data_sheet.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
+
+        //Filtros complete
+        $collection = collect($total_all);
+        $filteredMarcas = $collection;
+
+        $contadores = array(
+            'tipo' => $filteredMarcas->countBy('tipo'),
+            'caja' => $filteredMarcas->countBy('transmisionLabel'),
+            'combustible' => $filteredMarcas->countBy('combustibleLabel')
+        );
+        $response = [
+            'page' => $filtros['page'],
+            'total_records' => $total_records,
+            'vehicles' => $result,
+            'filtros' => $filtros,
+            'contadores' => $contadores
+        ];
+
+        return $response;
+    }
+    public function accesorios(Request $request){
+        $filtros = array(
+            'categoria' => $request->query('categoria') ? $request->query('categoria') : null,
+            'ubicacion' => $request->query('ubicacion') ? $request->query('ubicacion') : null,
+            'marca' => $request->query('marca') ? $request->query('marca') : null,
+            'motor' => $request->query('motor') ? $request->query('motor') : null,
+            'modelo' => $request->query('modelo') ? $request->query('modelo') : null,
+            'estado' => $request->query('estado') ? $request->query('estado') : null,
+            'transmision' => $request->query('transmision') ? $request->query('transmision') : null,
+            'kilometraje' => $request->query('kilometraje') ? $request->query('kilometraje') : null,
+            'precio' => $request->query('precio') ? $request->query('precio') : null,
+            'orden' => $request->query('orden') ? $request->query('orden') : null,
+            'page' => $request->query('page') ? $request->query('page') : 1
+        );
+        $result = Accesorios::select('accesorios.*', 'TP.nombre AS tipoAcc', 'I.nombre AS nameImage', 'I.extension', 'UC.nombre as ciudad')
+            ->join('tipo_accesorio AS TP', 'TP.id', 'accesorios.tipo_accesorio')
+            ->join('ubicacion_ciudades AS UC', 'UC.id', 'accesorios.ciudad_id')
+            ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
+            ->join('imagenes_accesorios AS IA', 'IA.accesorio_id', 'accesorios.id')
+            ->join('imagenes AS I', 'I.id', 'IA.image_id')
+            ->where('activo', 1);
+        
+        switch ($filtros['orden']) {
+            case 1:
+                $result->orderBy('accesorios.condicion', 'ASC');
+                break;
+            case 2:
+                $result->orderBy('accesorios.condicion', 'DESC');
+                break;
+            case 3:
+                $result->orderBy('accesorios.precio', 'ASC');
+                break;
+            case 4:
+                $result->orderBy('accesorios.precio', 'DESC');
+                break;
+            default:
+                $result->orderBy('accesorios.id', 'DESC');
+        }
+        $total_records = count($result->groupBy('accesorios.id')->get());
+        $total_all = $result->groupBy('accesorios.id')->get();
+        $result = $result->groupBy('accesorios.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
+
+        //Filtros complete
+        $collection = collect($total_all);
+        $filteredMarcas = $collection;
+
+        $contadores = array(
+            'tipo' => $filteredMarcas->countBy('tipoAcc'),
+            'ciudad' => $filteredMarcas->countBy('ciudad'),
+            'estado' => $filteredMarcas->countBy('condicion')
+        );
+        $response = [
+            'page' => $filtros['page'],
+            'total_records' => $total_records,
+            'vehicles' => $result,
+            'filtros' => $filtros,
+            'contadores' => $contadores
+        ];
+
+        return $response;
     }
 }
