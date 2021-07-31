@@ -20,6 +20,8 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('login', 'AuthController@login');
     $router->get('me', 'AuthController@me');
+    $router->post('register', 'AuthController@register');
+
     $router->get('profile/{id}', 'UsuarioController@profile');
     $router->get('publicaciones/{id}', 'UsuarioController@publicaciones');
     $router->get('favoritos/{id}', 'UsuarioController@favoritos');
@@ -43,4 +45,6 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('concesionarios', 'OtrosController@concesionarios');
     $router->get('comunidad', 'ComunidadController@show');
     $router->get('pregunta/{slug}', 'ComunidadController@detalle');
+
+
 });

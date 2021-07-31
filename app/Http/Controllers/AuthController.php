@@ -18,24 +18,24 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         //validate incoming request 
-        /**$this->validate($request, [
-            'name' => 'required|string',
+        $this->validate($request, [
+            'nombre' => 'required',
             'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed',
+            'password' => 'required',
         ]);
         try {
-            $user = new User;
+            /**$user = new User;
             $user->name = $request->input('name');
             $user->email = $request->input('email');
             $plainPassword = $request->input('password');
             $user->password = app('hash')->make($plainPassword);
-            $user->save();
+            $user->save();**/
             //return successful response
             return response()->json(['user' => $user, 'message' => 'CREATED'], 201);
         } catch (\Exception $e) {
             //return error message
             return response()->json(['message' => 'User Registration Failed!'], 409);
-        }**/
+        }
     }
     public function login(Request $request){
         $user = User::where('email', $request->email)->first();
