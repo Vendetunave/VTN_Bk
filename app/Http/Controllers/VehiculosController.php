@@ -343,4 +343,55 @@ class VehiculosController extends Controller
 
         return $response;
     }
+    public function accesorio($slug){
+        $arrayUrl = explode('-', $slug);
+        $id = $arrayUrl[COUNT($arrayUrl) - 1];
+        try {
+            $accesorio = Accesorios::select(
+                'accesorios.*',
+                'TA.nombre AS tipoLabel',
+                'UC.nombre AS ciudadLabel',
+                'UD.nombre AS departamentoLabel',
+                'TP.nombre AS tipoPrecioLabel',
+                'U.telefono'
+            )
+                ->leftJoin('users AS U', 'U.id', 'accesorios.vendedor_id')
+                ->leftJoin('tipo_accesorio AS TA', 'TA.id', 'accesorios.tipo_accesorio')
+                ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'accesorios.ciudad_id')
+                ->leftJoin('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
+                ->leftJoin('tipo_precio AS TP', 'TP.id', 'accesorios.tipo_precio')
+                ->where('accesorios.id', $id)
+                ->first();
+            $date1 = new DateTime($accesorio->fecha_creacion);
+            $date2 = new DateTime();
+            $diff = $date1->diff($date2);
+            $diasPublicado = $diff->days;
+
+            $imagenes = imagenes::select(
+                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".") AS url, imagenes.id AS imageId'),
+                    'imagenes.extension',
+                    'imagenes.new_image'
+                )
+                ->leftJoin('imagenes_accesorios AS IV', 'IV.image_id', 'imagenes.id')
+                ->where('IV.accesorio_id', $id)
+                ->get();
+
+            $response = [
+                'status' => true,
+                'vehiculo' => $accesorio,
+                'id' => $id,
+                'imagenes' => $imagenes,
+                'diasPublicado' => $diasPublicado,
+                'vehiculosRelacionados' => [],
+                'vehicleFav' => [],
+                'vehicleFavRelacionados' => [],
+            ];
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+            ];
+            return $response;
+        }
+    }
 }

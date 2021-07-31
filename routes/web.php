@@ -30,9 +30,15 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('home', 'HomeController@show');
     $router->get('config', 'HomeController@config');
     $router->get('vehiculos', 'VehiculosController@find');
-    $router->get('fichas_tecnicas', 'VehiculosController@fichas_tecnicas');
-    $router->get('accesorios', 'VehiculosController@accesorios');
     $router->get('vehiculo/{slug}', 'VehiculosController@detalle');
+
+    $router->get('fichas_tecnicas', 'VehiculosController@fichas_tecnicas');
+    $router->get('ficha_tecnica/{slug}', 'VehiculosController@ficha_tecnica');
+    
+    $router->get('accesorios', 'VehiculosController@accesorios');
+    $router->get('accesorio/{slug}', 'VehiculosController@accesorio');
+
+    
     $router->get('servicios', 'OtrosController@getServicios');
     $router->get('concesionarios', 'OtrosController@concesionarios');
     $router->get('comunidad', 'ComunidadController@show');
