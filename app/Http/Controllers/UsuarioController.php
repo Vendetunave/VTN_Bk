@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\Models\Users;
 use App\Models\Busquedas;
+use App\Models\Favoritos;
+use App\Models\FavoritesDataSheets;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -55,10 +57,35 @@ class UsuarioController extends Controller
 
         return $result;
     }
-    public function publicaciones(){
+    public function favoritos(Request $request, $id){
+
+        $vehiculos = Favoritos::select('favoritos.id', 'favoritos.vehiculo_id', 'V.title', 'V.precio', 'I.nombre AS nameImage', 'I.extension', 'UC.nombre AS labelCiudad')
+            ->join('vehicles AS V', 'V.id', 'favoritos.vehiculo_id')
+            ->join('ubicacion_ciudades AS UC', 'UC.id', 'V.ciudad_id')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'V.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->where('user_id', $id)
+            ->where('V.activo', 1)
+            ->groupBy('V.id')
+            ->orderBy('favoritos.id', 'DESC')
+            ->get();
+        
+        $fichas_tecnicas = FavoritesDataSheets::select()
+            ->join('data_sheet AS DS', 'DS.id', 'favorites_data_sheet.datasheet_id')
+            ->join('images_data_sheet AS I', 'I.datasheet_id', \DB::raw('DS.id AND I.order = 1'))
+            ->where('favorites_data_sheet.user_id', $id)
+            ->where('DS.active', 1)
+            ->orderBy('favorites_data_sheet.id', 'DESC')
+            ->get();
+
+        $result = [
+            'vehiculos' => $vehiculos,
+            'fichas_tecnicas' => $fichas_tecnicas
+        ];
+        return $result;
 
     }
-    public function favoritos(){
+    public function publicaciones(){
 
     }
     
