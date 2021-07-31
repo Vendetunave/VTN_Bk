@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\Pregunta;
+use App\Models\Respuestas;
 use App\Models\Tags;
 
 use Illuminate\Support\Facades\Auth;
@@ -39,5 +40,71 @@ class ComunidadController extends Controller
         ];
         return $result;
         
+    }
+    public function parse_id($string){
+        $id = str_replace(
+            array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä'),
+            array('a', 'a', 'a', 'a', 'a', 'A', 'A', 'A', 'A'),
+            $string
+        );
+        $id = str_replace(
+            array('é', 'è', 'ë', 'ê', 'É', 'È', 'Ê', 'Ë'),
+            array('e', 'e', 'e', 'e', 'E', 'E', 'E', 'E'),
+            $id
+        );
+        $id = str_replace(
+            array('í', 'ì', 'ï', 'î', 'Í', 'Ì', 'Ï', 'Î'),
+            array('i', 'i', 'i', 'i', 'I', 'I', 'I', 'I'),
+            $id
+        );
+        $id = str_replace(
+            array('ó', 'ò', 'ö', 'ô', 'Ó', 'Ò', 'Ö', 'Ô'),
+            array('o', 'o', 'o', 'o', 'O', 'O', 'O', 'O'),
+            $id
+        );
+        $id = str_replace(
+            array('ú', 'ù', 'ü', 'û', 'Ú', 'Ù', 'Û', 'Ü'),
+            array('u', 'u', 'u', 'u', 'U', 'U', 'U', 'U'),
+            $id
+        );
+        $id = str_replace(
+            array('ñ', 'Ñ', 'ç', 'Ç'),
+            array('n', 'N', 'c', 'C',),
+            $id
+        );
+        //Esta parte se encarga de eliminar cualquier caracter extraño
+        $id = str_replace(
+            array("¨", "º", "~",
+                 "#", "@", "|", "!",
+                 "·", "$", "%", "&", "/",
+                 "(", ")", "?", "¡",
+                 "¿", "[", "^", "<code>", "]",
+                 "+", "}", "{", "¨", "´",
+                 ">", "< ", ";", ",", ":",
+                 ".", " "),
+            '',
+            $id
+        );
+        return $id
+    }
+    public function detalle($slug){
+        $id_pregunta = $this->parse_id($slug);
+
+        $arrayUrl = explode('-', $id);
+        $id = $arrayUrl[COUNT($arrayUrl) - 1];
+
+        $pregunta = Pregunta::select('pregunta.*', 'U.nombre')->leftJoin('users AS U', 'U.id', 'pregunta.user_id')->where('pregunta.id', $id)->first();
+        $respuestas = Respuestas::select('respuestas.*', 'U.nombre', 'U.image')->leftJoin('users AS U', 'U.id', 'respuestas.user_id')->where('pregunta_id', $id)->orderBy('fecha', 'DESC')->get();
+        $tags = Tags::leftJoin('preguntas_tags  AS PT', 'PT.tag_id', 'tags.id')->where('PT.pregunta_id', $id)->get();
+
+        $result = [
+            'pregunta' => $pregunta,
+            'respuestas' => $respuestas,
+            'tags' => $tags,
+        ];
+
+        return $result;
+
+
     }
 }
