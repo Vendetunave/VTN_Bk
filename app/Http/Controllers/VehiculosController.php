@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Vehicles;
 use App\Models\imagenes;
 use App\Models\DataSheet;
+use App\Models\ImagesDataSheet;
+
 use App\Models\Accesorios;
 
 use DateTime;
@@ -393,5 +395,56 @@ class VehiculosController extends Controller
             ];
             return $response;
         }
+    }
+    public function ficha_tecnica($slug){
+        $arrayUrl = explode('-', $slug);
+        $id = $arrayUrl[COUNT($arrayUrl) - 1];
+
+        $vehiculo = DataSheet::select(
+            'data_sheet.*',
+            'C.nombre AS combustibleLabel',
+            'T.nombre AS transmisionLabel',
+            'M.nombre AS modeloLabel',
+            'MA.nombre AS marcaLabel',
+            'TV.nombre AS tipoLabel',
+            'I.name AS nameImage',
+            'I.ext AS extension',
+            \DB::raw('2 AS new_image')
+        )
+            ->join('images_data_sheet AS I', 'I.datasheet_id', \DB::raw('data_sheet.id AND I.order = 1'))
+            ->join('tipo_vehiculos AS TV', 'TV.id', 'data_sheet.vehicle_type_id')
+            ->join('combustibles AS C', 'C.id', 'data_sheet.fuel_id')
+            ->join('transmisiones AS T', 'T.id', 'data_sheet.transmission_id')
+            ->join('modelos AS M', 'M.id', 'data_sheet.model_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('data_sheet.id', $id)
+            ->first();
+
+        \DB::table('data_sheet')->where('id', $id)->update([
+            'views' => $vehiculo->views + 1,
+        ]);
+
+        $imagenes = ImagesDataSheet::select(
+            \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", path, name, ".") AS url'),
+            'ext AS extension',
+            \DB::raw('2 AS new_image')
+        )
+            ->where('datasheet_id', $id)
+            ->orderBy('order', 'ASC')
+            ->get();
+
+        $vehiculosRelacionados = array();
+        $vehiculosRelacionadosCount = 0;
+
+        $response = [
+            'vehicle' => $vehiculo,
+            'views' => $vehiculo->views + 1,
+            'imagenes' => $imagenes,
+            'vehiculosRelacionados' => $vehiculosRelacionados,
+            'vehiculosRelacionadosCount' => $vehiculosRelacionadosCount
+        ];
+
+        return $response;
+
     }
 }
