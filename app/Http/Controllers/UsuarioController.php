@@ -8,6 +8,9 @@ use App\Models\Users;
 use App\Models\Busquedas;
 use App\Models\Favoritos;
 use App\Models\FavoritesDataSheets;
+use App\Models\Vehicles;
+use App\Models\Accesorios;
+
 
 use Illuminate\Support\Facades\Auth;
 
@@ -85,7 +88,58 @@ class UsuarioController extends Controller
         return $result;
 
     }
-    public function publicaciones(){
+    public function publicaciones(Request $request, $id){
+        /****/
+        $vehicles = Vehicles::select(
+            'vehicles.id',
+            'vehicles.title',
+            'vehicles.sku',
+            'vehicles.ano',
+            'vehicles.precio',
+            'vehicles.fecha_creacion',
+            'vehicles.activo',
+            'vehicles.vendido',
+            'UC.nombre AS labelCiudad',
+            'I.nombre AS nameImage',
+            'I.extension',
+            'M.nombre AS modeloLabel'
+        )
+        ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+        ->leftJoin('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+        ->leftJoin('imagenes AS I', 'I.id', 'IV.id_image')
+        ->leftJoin('modelos AS M', 'M.id', 'vehicles.modelo_id')
+        ->where('vehicles.vendedor_id', $id)
+        ->where('vehicles.vendido', 0)
+        ->orderBy('vehicles.fecha_creacion', 'DESC')
+        ->groupBy('vehicles.id')
+        ->get();
+
+        $accesorios = Accesorios::select(
+            'accesorios.id',
+            'accesorios.title',
+            'accesorios.precio',
+            'accesorios.fecha_creacion',
+            'accesorios.activo',
+            'accesorios.vendido',
+            'UC.nombre AS labelCiudad',
+            'I.nombre AS nameImage',
+            'I.extension'
+        )
+            ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'accesorios.ciudad_id')
+            ->leftJoin('imagenes_accesorios AS IV', 'IV.accesorio_id', 'accesorios.id')
+            ->leftJoin('imagenes AS I', 'I.id', 'IV.image_id')
+            ->where('vendedor_id', $id)
+            ->where('accesorios.vendido', 0)
+            ->orderBy('accesorios.fecha_creacion', 'DESC')
+            ->orderBy('accesorios.id', 'DESC')
+            ->groupBy('accesorios.id')
+            ->get();
+
+        $result = [
+            'vehiculos' => $vehicles,
+            'accesorios' => $accesorios
+        ];
+        return $result;
 
     }
     
