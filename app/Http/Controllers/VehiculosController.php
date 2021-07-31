@@ -8,6 +8,7 @@ use App\Models\Vehicles;
 use App\Models\imagenes;
 use App\Models\DataSheet;
 use App\Models\ImagesDataSheet;
+use App\Models\TipoVehiculos;
 
 use App\Models\Accesorios;
 
@@ -242,12 +243,15 @@ class VehiculosController extends Controller
             'I.name AS nameImage',
             'I.ext AS extension',
             'TP.nombre AS tipo',
+            'MA.nombre AS marca',
             \DB::raw('2 AS new_image')
         )
             ->join('images_data_sheet AS I', 'I.datasheet_id', \DB::raw('data_sheet.id AND I.order = 1'))
             ->join('combustibles AS C', 'C.id', 'data_sheet.fuel_id')
             ->join('transmisiones AS T', 'T.id', 'data_sheet.transmission_id')
             ->join('tipo_vehiculos AS TP', 'TP.id', 'data_sheet.vehicle_type_id')
+            ->join('modelos AS M', 'M.id', 'data_sheet.model_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
             ->where('data_sheet.active', 1);
         
         switch ($filtros['orden']) {
@@ -260,7 +264,6 @@ class VehiculosController extends Controller
             default:
                 $result->orderBy('data_sheet.id', 'DESC');
         }
-
         $total_records = count($result->groupBy('data_sheet.id')->get());
         $total_all = $result->groupBy('data_sheet.id')->get();
         $result = $result->groupBy('data_sheet.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
@@ -272,6 +275,7 @@ class VehiculosController extends Controller
         $contadores = array(
             'tipo' => $filteredMarcas->countBy('tipo'),
             'caja' => $filteredMarcas->countBy('transmisionLabel'),
+            'marca' => $filteredMarcas->countBy('marca'),
             'combustible' => $filteredMarcas->countBy('combustibleLabel')
         );
         $response = [
