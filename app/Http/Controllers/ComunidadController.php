@@ -85,12 +85,12 @@ class ComunidadController extends Controller
             '',
             $id
         );
-        return $id
+        return $id;
     }
     public function detalle($slug){
         $id_pregunta = $this->parse_id($slug);
 
-        $arrayUrl = explode('-', $id);
+        $arrayUrl = explode('-', $id_pregunta);
         $id = $arrayUrl[COUNT($arrayUrl) - 1];
 
         $pregunta = Pregunta::select('pregunta.*', 'U.nombre')->leftJoin('users AS U', 'U.id', 'pregunta.user_id')->where('pregunta.id', $id)->first();
@@ -100,11 +100,8 @@ class ComunidadController extends Controller
         $result = [
             'pregunta' => $pregunta,
             'respuestas' => $respuestas,
-            'tags' => $tags,
+            'tags' => $tags
         ];
-
         return $result;
-
-
     }
 }
