@@ -68,6 +68,9 @@ class VehiculosController extends Controller
         if( $filtros['ubicacion'] ){
             $result->where('UC.nombre', $filtros['ubicacion']);
         }
+        if( $filtros['motor'] ){
+            $result->where('MO.nombre', $filtros['combustible']);
+        }
         //Cateoria Filter
         if ($filtros['categoria']) {
             $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
