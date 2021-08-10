@@ -153,8 +153,10 @@ class VehiculosController extends Controller
                 'TM.id AS tipoMotoId',
                 'UC.nombre AS ciudadLabel',
                 'UD.nombre AS departamentoLabel',
-                'TP.nombre AS tipoPrecioLabel'
+                'TP.nombre AS tipoPrecioLabel',
+                'I.nombre AS nameImage', 'I.extension', 'I.new_image'
             )
+                ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
                 ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
                 ->leftJoin('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')
                 ->join('combustibles AS C', 'C.id', 'vehicles.combustible')
