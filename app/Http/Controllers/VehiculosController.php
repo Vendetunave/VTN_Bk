@@ -100,7 +100,7 @@ class VehiculosController extends Controller
                 $result->orderBy('vehicles.fecha_publicacion', 'DESC');
         }
         if ($filtros['estado']) {
-            $estado = ($estado == 2) ? 'Usado' : 'Nuevo';
+            //$estado = ($estado == 2) ? 'Usado' : 'Nuevo';
             $result->where('vehicles.condicion', $filtros['estado']);
         }
         $total_records = count($result->groupBy('vehicles.id')->get());
