@@ -95,13 +95,16 @@ class VehiculosController extends Controller
         }
         //
         if ($filtros['promocion']) {
-            $result->where('vehicles.promocion', $filtros['promocion'])->where('vehicles.aprobado_promocion', 1);
+            $parseBoolean = $filtros['promocion'] ? 1 : 0;
+            $result->where('vehicles.promocion', $parseBoolean)->where('vehicles.aprobado_promocion', 1);
         }
         if ($filtros['permuta']) {
-            $result->where('vehicles.permuta', $filtros['permuta']);
+            $parseBoolean = $filtros['permuta'] ? 1 : 0;
+            $result->where('vehicles.permuta', $parseBoolean);
         }
         if ($filtros['blindaje']) {
-            $result->where('vehicles.blindado', $filtros['blindaje']);
+            $parseBoolean = $filtros['blindaje'] ? 1 : 0;
+            $result->where('vehicles.blindado', $parseBoolean);
         }
         //
         if ($filtros['precio']) {
