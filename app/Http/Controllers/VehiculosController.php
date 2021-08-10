@@ -49,7 +49,11 @@ class VehiculosController extends Controller
             'kilometraje' => $request->query('kilometraje') ? $request->query('kilometraje') : null,
             'precio' => $request->query('precio') ? $request->query('precio') : null,
             'orden' => $request->query('orden') ? $request->query('orden') : null,
-            'page' => $request->query('page') ? $request->query('page') : 1
+            'page' => $request->query('page') ? $request->query('page') : 1,
+            'permuta' => $request->query('permuta') ? $request->query('permuta') : false,
+            'promocion' => $request->query('promocion') ? $request->query('promocion') : false,
+            'blindaje' => $request->query('blindaje') ? $request->query('blindaje') : false,
+            'ano' => $request->query('ano') ? $request->query('ano') : null
         );
         $result = Vehicles::select(
                 'vehicles.id', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
@@ -86,6 +90,20 @@ class VehiculosController extends Controller
         if ($filtros['transmision']) {
             $result->where('TA.nombre', $filtros['transmision']);
         }
+        if ($filtros['ano']) {
+            $result->where('ano', $filtros['ano']);
+        }
+        //
+        if ($filtros['promocion']) {
+            $result->where('vehicles.promocion', $filtros['promocion'])->where('vehicles.aprobado_promocion', 1);
+        }
+        if ($filtros['permuta']) {
+            $result->where('vehicles.permuta', $filtros['permuta']);
+        }
+        if ($filtros['blindaje']) {
+            $result->where('vehicles.blindado', $filtros['blindaje']);
+        }
+        //
         if ($filtros['precio']) {
             $decodeParam = $filtros['precio'];
             $arrayPrices = explode(":", $decodeParam);
