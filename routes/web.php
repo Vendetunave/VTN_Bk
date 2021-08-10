@@ -33,6 +33,7 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('config', 'HomeController@config');
     $router->get('vehiculos', 'VehiculosController@find');
     $router->get('vehiculo/{slug}', 'VehiculosController@detalle');
+    $router->get('modelos/{id}', 'VehiculosController@modelos');
 
     $router->get('fichas_tecnicas', 'VehiculosController@fichas_tecnicas');
     $router->get('ficha_tecnica/{slug}', 'VehiculosController@ficha_tecnica');

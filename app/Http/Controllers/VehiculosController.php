@@ -451,4 +451,11 @@ class VehiculosController extends Controller
         return $response;
 
     }
+    public function modelos($id){
+        $modelos = Modelos::select('*')->where('marca_id', $id)->get();
+        $result = [
+            'modelos' => $modelos,
+        ];
+        return $result;
+    }
 }
