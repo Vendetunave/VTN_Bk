@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Vehicles;
 use App\Models\imagenes;
 use App\Models\DataSheet;
+use App\Models\Modelos;
 use App\Models\ImagesDataSheet;
 use App\Models\TipoVehiculos;
 
