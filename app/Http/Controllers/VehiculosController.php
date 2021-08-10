@@ -86,6 +86,16 @@ class VehiculosController extends Controller
         if ($filtros['transmision']) {
             $result->where('TA.nombre', $filtros['transmision']);
         }
+        if ($filtros['precio']) {
+            $decodeParam = $filtros['precio'];
+            $arrayPrices = explode(":", $decodeParam);
+            $result->whereBetween('precio', $arrayPrices);
+        }
+        if ($filtros['kilometraje']) {
+            $decodeParam = $filtros['kilometraje'];
+            $arrayPrices = explode(":", $decodeParam);
+            $result->whereBetween('kilometraje', $arrayPrices);
+        }
         switch ($filtros['orden']) {
             case 1:
                 $result->orderBy('vehicles.condicion', 'ASC');
