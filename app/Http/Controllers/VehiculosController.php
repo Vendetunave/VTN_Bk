@@ -53,7 +53,8 @@ class VehiculosController extends Controller
             'permuta' => $request->query('permuta') ? $request->query('permuta') : false,
             'promocion' => $request->query('promocion') ? $request->query('promocion') : false,
             'blindaje' => $request->query('blindaje') ? $request->query('blindaje') : false,
-            'ano' => $request->query('ano') ? $request->query('ano') : null
+            'ano' => $request->query('ano') ? $request->query('ano') : null,
+            'anio' => $request->query('anio') ? $request->query('anio') : null
         );
         $result = Vehicles::select(
                 'vehicles.id', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
@@ -92,6 +93,11 @@ class VehiculosController extends Controller
         }
         if ($filtros['ano']) {
             $result->where('ano', $filtros['ano']);
+        }
+        if ($filtros['anio']) {
+            $decodeParam = $filtros['anio'];
+            $arrayPrices = explode(":", $decodeParam);
+            $result->whereBetween('ano', $arrayPrices);
         }
         //
         if ($filtros['promocion']) {
