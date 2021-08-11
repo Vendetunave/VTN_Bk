@@ -94,13 +94,6 @@ class VehiculosController extends Controller
         if ($filtros['ano']) {
             $result->where('ano', $filtros['ano']);
         }
-        if ($filtros['anio']) {
-            $decodeParam = $filtros['anio'];
-            $arrayPrices = explode(":", $decodeParam);
-            $arrayPrices[0] = (int)$arrayPrices[0];
-            $arrayPrices[1] = (int)$arrayPrices[1];
-            $result->whereBetween('ano', $arrayPrices);
-        }
         //
         if ($filtros['promocion']) {
             $parseBoolean = $filtros['promocion'] ? 1 : 0;
@@ -115,6 +108,12 @@ class VehiculosController extends Controller
             $result->where('vehicles.blindado', $parseBoolean);
         }
         //
+        if ($filtros['anio']) {
+            $decodeParam = $filtros['anio'];
+            $arrayPrices = explode(":", $decodeParam);
+            $result->whereBetween('ano', $arrayPrices);
+            $filtros['anio'] = $arrayPrices;
+        }
         if ($filtros['precio']) {
             $decodeParam = $filtros['precio'];
             $arrayPrices = explode(":", $decodeParam);
