@@ -111,12 +111,7 @@ class VehiculosController extends Controller
         if ($filtros['anio']) {
             $decodeParam = $filtros['anio'];
             $arrayPrices = explode(":", $decodeParam);
-            foreach ($arrayPrices as $anio)
-            {
-                $anio = (int)$anio;
-            }
             $result->whereBetween('ano', $arrayPrices);
-            $filtros['anio'] = $arrayPrices;
         }
         if ($filtros['precio']) {
             $decodeParam = $filtros['precio'];
