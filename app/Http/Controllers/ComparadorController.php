@@ -53,7 +53,7 @@ class ComparadorController extends Controller
             ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
             ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio');
         //$arrayTest = array(6819, 7087);
-        foreach ($request->data as $value) {
+        foreach ($request->input('data') as $value) {
             $vehiculo->orWhere('vehicles.id', $value);
         }
         $compare = $vehiculo->groupBy('vehicles.id')->get();
@@ -83,7 +83,7 @@ class ComparadorController extends Controller
             ->join('modelos AS M', 'M.id', 'data_sheet.model_id')
             ->join('marcas AS MA', 'MA.id', 'M.marca_id');
 
-        foreach ($request->data as $value) {
+        foreach ($request->input('data') as $value) {
             $vehiculo->orWhere('data_sheet.id', $value);
         }
         $compare = $vehiculo->groupBy('data_sheet.id')->get();
