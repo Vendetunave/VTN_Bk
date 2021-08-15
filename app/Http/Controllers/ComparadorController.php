@@ -52,7 +52,7 @@ class ComparadorController extends Controller
             ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
             ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio');
 
-        $arrayTest = array(4590, 5192);
+        $arrayTest = array(6819, 7087);
         
         foreach ($arrayTest as $value) {
             $vehiculo->orWhere('vehicles.id', $value);
