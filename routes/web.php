@@ -41,7 +41,8 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('accesorios', 'VehiculosController@accesorios');
     $router->get('accesorio/{slug}', 'VehiculosController@accesorio');
 
-    $router->post('comparar_pdf', 'ComparadorController@generate_pdf');
+    //$router->post('comparar_pdf', 'ComparadorController@generate_pdf');
+    $router->get('comparar_pdf', 'ComparadorController@generate_pdf');
     
     $router->get('servicios', 'OtrosController@getServicios');
     $router->get('concesionarios', 'OtrosController@concesionarios');

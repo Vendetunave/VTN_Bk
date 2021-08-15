@@ -52,24 +52,16 @@ class ComparadorController extends Controller
             ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
             ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio');
 
-        foreach ($request->data as $value) {
+        $arrayTest = array(4590, 5192);
+        
+        foreach ($arrayTest as $value) {
             $vehiculo->orWhere('vehicles.id', $value);
         }
-        $vehiculo = $vehiculo->get();
-        $compare = [];
-        foreach ($request->data as $value) {
-            foreach ($vehiculo as $item) {
-                if ($value === $item->id) {
-                    array_push($compare, $item);
-                }
-            }
-        }
+        $compare = $vehiculo->groupBy('vehicles.id')->get();
         $response = [
             'vehiculo' => $compare,
         ];
-        $pdf = Facade::loadHtml('<h1>Test</h1>');
-        //Re make PDF view on html
-        
+        $pdf = Facade::loadView('comparePDF', $response);
         return $pdf->download('archivo.pdf');
     }
 
