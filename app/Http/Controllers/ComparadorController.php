@@ -60,9 +60,9 @@ class ComparadorController extends Controller
         $response = [
             'vehiculo' => $compare,
         ];
-        return $response;
-        /**$pdf = Facade::loadView('comparePDF', $response);
-        return $pdf->download('archivo.pdf');**/
+        //return $response;
+        $pdf = Facade::loadView('comparePDF', $response);
+        return $pdf->download('archivo.pdf');
     }
     public function generate_ficha(Request $request)
     {
@@ -91,8 +91,8 @@ class ComparadorController extends Controller
         $response = [
             'vehiculo' => $compare,
         ];
-        return $response;
-        /**$pdf = Facade::loadView('comparePdfDatasheet', $response);
-        return $pdf->download('archivo.pdf');**/
+        //return $response;
+        $pdf = Facade::loadView('comparePdfDatasheet', $response);
+        return $pdf->download('archivo.pdf');
     }
 }
