@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\Vehicles;
+use Barryvdh\DomPDF\Facade;
 
 class ComparadorController extends Controller
 {
@@ -66,7 +67,7 @@ class ComparadorController extends Controller
         $response = [
             'vehiculo' => $compare,
         ];
-        $pdf = \PDF::loadView('comparePdf', $response);
+        $pdf = Facade::loadView('comparePdf', $response);
         return $pdf->download('archivo.pdf');
     }
 
