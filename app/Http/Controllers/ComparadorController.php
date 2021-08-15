@@ -18,7 +18,7 @@ class ComparadorController extends Controller
     {
         //$this->middleware('auth');
     }
-    public function generate_pdf(Request $request)
+    public function generate_vehiculo(Request $request)
     {
         $vehiculo = Vehicles::select(
             'vehicles.*',
@@ -51,10 +51,8 @@ class ComparadorController extends Controller
             ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
             ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
             ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio');
-
-        $arrayTest = array(6819, 7087);
-        
-        foreach ($arrayTest as $value) {
+        //$arrayTest = array(6819, 7087);
+        foreach ($request->data as $value) {
             $vehiculo->orWhere('vehicles.id', $value);
         }
         $compare = $vehiculo->groupBy('vehicles.id')->get();
@@ -64,5 +62,34 @@ class ComparadorController extends Controller
         $pdf = Facade::loadView('comparePDF', $response);
         return $pdf->download('archivo.pdf');
     }
+    public function generate_ficha(Request $request)
+    {
+         $vehiculo = DataSheet::select(
+            'data_sheet.*',
+            'C.nombre AS combustibleLabel',
+            'T.nombre AS transmisionLabel',
+            'M.nombre AS modeloLabel',
+            'MA.nombre AS marcaLabel',
+            'TV.nombre AS tipoLabel',
+            'I.name AS nameImage',
+            'I.ext AS extension',
+            \DB::raw('2 AS new_image')
+        )
+            ->join('images_data_sheet AS I', 'I.datasheet_id', \DB::raw('data_sheet.id AND I.order = 1'))
+            ->join('tipo_vehiculos AS TV', 'TV.id', 'data_sheet.vehicle_type_id')
+            ->join('combustibles AS C', 'C.id', 'data_sheet.fuel_id')
+            ->join('transmisiones AS T', 'T.id', 'data_sheet.transmission_id')
+            ->join('modelos AS M', 'M.id', 'data_sheet.model_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id');
 
+        foreach ($request->data as $value) {
+            $vehiculo->orWhere('data_sheet.id', $value);
+        }
+        $compare = $vehiculo->groupBy('data_sheet.id')->get();
+        $response = [
+            'vehiculo' => $compare,
+        ];
+        $pdf = Facade::loadView('comparePdfDatasheet', $response);
+        return $pdf->download('archivo.pdf');
+    }
 }
