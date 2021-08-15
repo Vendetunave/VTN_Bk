@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\Vehicles;
+use App\Models\DataSheet;
 use Barryvdh\DomPDF\Facade;
 
 class ComparadorController extends Controller
