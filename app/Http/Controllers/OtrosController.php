@@ -27,7 +27,7 @@ class OtrosController extends Controller
         $servicios = Servicios::select('servicios.*', 'TS.nombre AS servicio', 'UC.nombre AS labelCiudad')
         ->leftJoin('tipos_servicio AS TS', 'TS.id', 'servicios.tipo_servicio_id')
         ->join('ubicacion_ciudades AS UC', 'UC.id', 'servicios.ciudad_id');
-
+        $total_all = $servicios->get();
         if($servicio){
             $servicios->where('TS.nombre', $servicio);
         }
@@ -37,8 +37,6 @@ class OtrosController extends Controller
         }
 
         $total_records = count($servicios->get());
-        $total_all = $servicios->get();
-
         $servicios = $servicios->offset(($page - 1) * 10)->limit(10)->get();
 
         $collection = collect($total_all);
