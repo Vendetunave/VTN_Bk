@@ -11,6 +11,16 @@ use App\Models\FavoritesDataSheets;
 use App\Models\Vehicles;
 use App\Models\Accesorios;
 
+use App\Models\TipoVehiculos;
+use App\Models\Combustibles;
+use App\Models\Colores;
+use App\Models\Transmisiones;
+use App\Models\TipoPrecio;
+use App\Models\TipoMoto;
+use App\Models\ubicacion_ciudades;
+use App\Models\ubicacion_departamentos;
+use App\Models\tipo_accesorio;
+
 
 use Illuminate\Support\Facades\Auth;
 
@@ -142,5 +152,29 @@ class UsuarioController extends Controller
         return $result;
 
     }
-    
+    public function form_producto(Request $request){
+
+        $categories = TipoVehiculos::all();
+        $tipoAccesorio = tipo_accesorio::all();
+        $combustibles = Combustibles::all();
+        $colores = Colores::all();
+        $transmisiones = Transmisiones::all();
+        $tipoPrecio = TipoPrecio::all();
+        $departamentos = ubicacion_departamentos::select('*')->orderBy('nombre')->get();
+        $tipoMoto = TipoMoto::all();
+
+        $result = [
+            'categories' => $categories,
+            'combustibles' => $combustibles,
+            'colores' => $colores,
+            'transmisiones' => $transmisiones,
+            'tipoPrecio' => $tipoPrecio,
+            'departamentos' => $departamentos,
+            'tipoAccesorio' => $tipoAccesorio,
+            'tipoMoto' => $tipoMoto,
+        ];
+
+        return $result;
+
+    }
 }
