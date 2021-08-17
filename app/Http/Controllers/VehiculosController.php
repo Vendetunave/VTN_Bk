@@ -175,6 +175,11 @@ class VehiculosController extends Controller
             $arrayUrl = explode('-', $slug);
             $id = $arrayUrl[COUNT($arrayUrl) - 1];
 
+            $vehiculoViews = Vehicles::select('views')->where('vehicles.id', $id) ->first();
+            if ($vehiculoViews) {
+                \DB::table('vehicles')->where('id', $id)->update(['views' => ($vehiculoViews->views + 1)]);
+            }
+
             $vehiculo = Vehicles::select(
                 'vehicles.*',
                 'C.nombre AS combustibleLabel',
