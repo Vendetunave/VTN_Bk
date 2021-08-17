@@ -27,6 +27,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->get('favoritos/{id}', 'UsuarioController@favoritos');
     $router->get('busquedas/{id}', 'UsuarioController@busquedas');
     $router->get('form_producto', 'UsuarioController@form_producto');
+    $router->post('comment', 'UsuarioController@make_comment');
     
 });
 //Public routes

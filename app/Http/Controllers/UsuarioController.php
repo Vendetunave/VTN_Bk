@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Users;
 use App\Models\Busquedas;
+use App\Models\Respuestas;
 use App\Models\Favoritos;
 use App\Models\FavoritesDataSheets;
 use App\Models\Vehicles;
@@ -173,8 +174,16 @@ class UsuarioController extends Controller
             'tipoAccesorio' => $tipoAccesorio,
             'tipoMoto' => $tipoMoto,
         ];
-
         return $result;
-
+    }
+    public function make_comment(Request $request){
+        $user = Users::where('id', $request->id)->first();
+        if ($user->locked == 0) {
+            $respuesta = Respuestas::insert(['pregunta_id' => $request->idPregunta, 'respuesta' => $request->comentario, 'user_id' => $request->id, 'fecha' => date('Y-m-d H:i:s')]);
+        }
+        $result = [
+            'state' => ($user->locked == 0) ? true : false
+        ];
+        return $result;
     }
 }
