@@ -485,8 +485,18 @@ class VehiculosController extends Controller
             ->orderBy('order', 'ASC')
             ->get();
 
-        $vehiculosRelacionados = array();
-        $vehiculosRelacionadosCount = 0;
+        $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->where('activo', 1)
+            ->where('vehicles.modelo_id', $vehiculo->model_id)
+            ->groupBy('vehicles.id')
+            ->limit(10)
+            ->get();
+
+        $vehiculosRelacionadosCount = Vehicles::where('activo', 1)
+            ->where('vehicles.modelo_id', $vehiculo->model_id)
+            ->count();
 
         $response = [
             'vehicle' => $vehiculo,
