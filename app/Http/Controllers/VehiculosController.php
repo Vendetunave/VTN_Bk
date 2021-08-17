@@ -54,7 +54,8 @@ class VehiculosController extends Controller
             'promocion' => $request->query('promocion') ? $request->query('promocion') : false,
             'blindaje' => $request->query('blindaje') ? $request->query('blindaje') : false,
             'ano' => $request->query('ano') ? $request->query('ano') : null,
-            'anio' => $request->query('anio') ? $request->query('anio') : null
+            'anio' => $request->query('anio') ? $request->query('anio') : null,
+            'q' => $request->query('q') ? $request->query('q') : null
         );
         $result = Vehicles::select(
                 'vehicles.id', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
@@ -69,7 +70,10 @@ class VehiculosController extends Controller
             ->join('combustibles AS MO', 'MO.id', 'vehicles.combustible')
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
             ->where('vehicles.activo', 1);
-        //Ubicacion Filter
+        //Tag search Filter
+        if( $filtros['q'] ){
+            $result->where('vehicles.title', 'like', $filtros['q']);
+        }
         if( $filtros['ubicacion'] ){
             $result->where('UC.nombre', $filtros['ubicacion']);
         }
