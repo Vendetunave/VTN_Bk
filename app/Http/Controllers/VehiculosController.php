@@ -72,7 +72,7 @@ class VehiculosController extends Controller
             ->where('vehicles.activo', 1);
         //Tag search Filter
         if( $filtros['q'] ){
-            $result->where('vehicles.title', 'like', $filtros['q']);
+            $result->where('vehicles.title', 'LIKE', '%'.$filtros['q'].'%');
         }
         if( $filtros['ubicacion'] ){
             $result->where('UC.nombre', $filtros['ubicacion']);
