@@ -28,6 +28,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->get('busquedas/{id}', 'UsuarioController@busquedas');
     $router->get('form_producto', 'UsuarioController@form_producto');
     $router->post('comment', 'UsuarioController@make_comment');
+    $router->post('favoritos', 'UsuarioController@make_favorito');
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
