@@ -198,5 +198,6 @@ class UsuarioController extends Controller
             'state' => true,
             'message' => 'Se agrego a favoritos'
         ];
+        return $result;
     }
 }
