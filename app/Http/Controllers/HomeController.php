@@ -69,4 +69,19 @@ class HomeController extends Controller
 
         return $response;
     }
+    public function newsletter(){
+        $user = newsletter::where('email', $request->emailNewsletter)->first();
+        if ($user) {
+            $response = 'Ya te encuentras registrado a nuestro newsletter.';
+        } else {
+            $insertNewsletter = newsletter::insert(['nombre' => $request->nombreNewsletter, 'email' => $request->emailNewsletter]);
+            $response = 'Te has registrado al newsletter con éxito.';
+        }
+
+        $result = [
+            'state' => true,
+            'message' => $response
+        ];
+        return $result;
+    }
 }

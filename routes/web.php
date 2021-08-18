@@ -28,7 +28,6 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->get('busquedas/{id}', 'UsuarioController@busquedas');
     $router->get('form_producto', 'UsuarioController@form_producto');
     $router->post('comment', 'UsuarioController@make_comment');
-    
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
@@ -51,6 +50,5 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('concesionarios', 'OtrosController@concesionarios');
     $router->get('comunidad', 'ComunidadController@show');
     $router->get('pregunta/{slug}', 'ComunidadController@detalle');
-
-
+    $router->post('newsletter', 'HomeController@newsletter');
 });
