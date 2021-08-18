@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+
 use App\Models\TipoVehiculos;
 use App\Models\Vehicles;
 use App\Models\imagenes;
@@ -69,7 +71,8 @@ class HomeController extends Controller
 
         return $response;
     }
-    public function newsletter(){
+    public function newsletter(Request $request){
+
         $user = newsletter::where('email', $request->emailNewsletter)->first();
         if ($user) {
             $response = 'Ya te encuentras registrado a nuestro newsletter.';
@@ -82,6 +85,7 @@ class HomeController extends Controller
             'state' => true,
             'message' => $response
         ];
+        
         return $result;
     }
 }
