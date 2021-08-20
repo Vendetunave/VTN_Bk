@@ -118,7 +118,7 @@ class VehiculosController extends Controller
         //Cateoria Filter
         if ($filtros['categoria']) {
             if($filtros['categoria'] === 'motos'){
-                $result->select('TM.nombre AS tipoMotoLabel')->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')
+                $result->select('TM.nombre AS tipoMotoLabel')->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
             }
             $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
         } else {
