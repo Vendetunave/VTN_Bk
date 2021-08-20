@@ -10,6 +10,7 @@ use App\Models\DataSheet;
 use App\Models\Modelos;
 use App\Models\ImagesDataSheet;
 use App\Models\TipoVehiculos;
+use App\Models\Favoritos;
 
 use App\Models\Accesorios;
 
