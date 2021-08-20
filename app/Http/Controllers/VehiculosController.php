@@ -251,14 +251,21 @@ class VehiculosController extends Controller
                 ->where('vehicles.id', '<>', $vehiculo->id)
                 ->count();
 
+            $vehicleFav = array();
+            
+            $user = Auth::user();
+            if($user){
+                $vehicleFav = Favoritos::where('vehiculo_id', $vehiculo->id)->where('user_id', $user->id)->get();
+            }
+
             $response = [
                 'status' => true,
                 'vehiculo' => $vehiculo,
                 'imagenes' => $imagenes,
                 'vehiculosRelacionados' => $vehiculosRelacionados,
                 'vehiculosRelacionadosCount' => $vehiculosRelacionadosCount,
+                'vehicleFav' => $vehicleFav,
                 'diasPublicado' => $diasPublicado,
-                
                 'urlCategory' => $urlCategory,
                 'urlTypeMoto' => $urlTypeMoto,
                 'urlMarca' => $urlMarca,
