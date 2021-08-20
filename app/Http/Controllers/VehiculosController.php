@@ -39,6 +39,34 @@ class VehiculosController extends Controller
                 return 6;
         }
     }
+    public function parse_slug_id_tipo($slug){
+        switch ($slug) {
+            case 'Chopper':
+                return 1;
+            case 'Enduro':
+                return 2;
+            case 'Naked':
+                return 3;
+            case 'Cross':
+                return 4;
+            case 'Cuatrimotos':
+                return 5;
+            case 'Deportivas':
+                return 6;
+            case 'Motocarros':
+                return 7;
+            case 'Motos de Calle':
+                return 8;
+            case 'Scooters':
+                return 9;
+            case 'Touring':
+                return 10;
+            case 'Triciclos':
+                return 11;
+            case 'Otros Tipos':
+                return 12;
+        }
+    }
     public function find(Request $request)
     {
         $filtros = array(
@@ -46,6 +74,7 @@ class VehiculosController extends Controller
             'ubicacion' => $request->query('ubicacion') ? $request->query('ubicacion') : null,
             'marca' => $request->query('marca') ? $request->query('marca') : null,
             'motor' => $request->query('motor') ? $request->query('motor') : null,
+            'tipo' => $request->query('tipo') ? $request->query('tipo') : null,
             'modelo' => $request->query('modelo') ? $request->query('modelo') : null,
             'estado' => $request->query('estado') ? $request->query('estado') : null,
             'transmision' => $request->query('transmision') ? $request->query('transmision') : null,
@@ -61,10 +90,10 @@ class VehiculosController extends Controller
             'q' => $request->query('q') ? $request->query('q') : null
         );
         $result = Vehicles::select(
-                'vehicles.id', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
+                'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
                 'vehicles.ano', 'vehicles.kilometraje', 'UC.nombre AS labelCiudad',
                 'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca', 
-                'MO.nombre AS combustible', 'TA.nombre AS transmision'
+                'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TM.nombre AS tipoMotoLabel'
             )
             ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
             ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
@@ -72,6 +101,7 @@ class VehiculosController extends Controller
             ->join('marcas AS MA', 'MA.id', 'M.marca_id')
             ->join('combustibles AS MO', 'MO.id', 'vehicles.combustible')
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
+            ->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')
             ->where('vehicles.activo', 1);
         //Tag search Filter
         if( $filtros['q'] ){
@@ -82,6 +112,9 @@ class VehiculosController extends Controller
         }
         if( $filtros['motor'] ){
             $result->where('MO.nombre', $filtros['motor']);
+        }
+        if( $filtros['tipo'] ){
+            $result->where('vehicles.tipo_moto', $this->parse_slug_id_tipo($filtros['tipo']));
         }
         //Cateoria Filter
         if ($filtros['categoria']) {
@@ -164,6 +197,7 @@ class VehiculosController extends Controller
             'anios' => $filteredMarcas->countBy('ano'),
             'caja' => $filteredMarcas->countBy('transmision'),
             'combustible' => $filteredMarcas->countBy('combustible'),
+            'tipo' => $filteredMarcas->countBy('tipoMotoLabel'),
             'ubicacion' => $filteredMarcas->countBy('labelCiudad')
         );
 
