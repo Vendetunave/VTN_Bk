@@ -29,6 +29,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->get('form_producto', 'UsuarioController@form_producto');
     $router->post('comment', 'UsuarioController@make_comment');
     $router->post('favoritos', 'UsuarioController@make_favorito');
+    $router->post('favoritos_vehiculo', 'UsuarioController@make_favorito_vehiculo');
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){

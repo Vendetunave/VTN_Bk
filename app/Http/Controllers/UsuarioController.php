@@ -200,4 +200,29 @@ class UsuarioController extends Controller
         ];
         return $result;
     }
+    public function make_favorito_vehiculo(Request $request){
+        $accion = 0;
+        if ($request->state) {
+            $favorito = Favoritos::insert([
+                'vehiculo_id' => $request->idVehicle,
+                'user_id' => $request->idUser
+            ]);
+            $accion = 1;
+        } else {
+            $favorito = Favoritos::where('vehiculo_id', $request->idVehicle)->where('user_id', $request->idUser)->delete();
+            $accion = 2;
+        }
+        if ($favorito) {
+            $result = [
+                'state' => true,
+                'message' => ($accion === 1) ? 'Se agrego a favoritos' : 'Se elimino de favoritos'
+            ];
+        } else {
+            $result = [
+                'state' => true,
+            ];
+        }
+        return $result;
+        
+    }
 }
