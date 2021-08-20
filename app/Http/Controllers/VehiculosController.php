@@ -289,7 +289,8 @@ class VehiculosController extends Controller
             'kilometraje' => $request->query('kilometraje') ? $request->query('kilometraje') : null,
             'precio' => $request->query('precio') ? $request->query('precio') : null,
             'orden' => $request->query('orden') ? $request->query('orden') : null,
-            'page' => $request->query('page') ? $request->query('page') : 1
+            'page' => $request->query('page') ? $request->query('page') : 1,
+            'q' => $request->query('q') ? $request->query('q') : null
         );
         $result = DataSheet::select(
             'data_sheet.id',
@@ -316,6 +317,10 @@ class VehiculosController extends Controller
             ->join('marcas AS MA', 'MA.id', 'M.marca_id')
             ->where('data_sheet.active', 1);
         
+        if( $filtros['q'] ){
+            $result->where('data_sheet.title', 'LIKE', '%'.$filtros['q'].'%');
+        }
+
         switch ($filtros['orden']) {
             case 3:
                 $result->orderBy('data_sheet.price', 'ASC');
