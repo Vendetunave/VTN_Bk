@@ -15,6 +15,8 @@ use App\Models\Accesorios;
 
 use DateTime;
 
+use Illuminate\Support\Facades\Auth;
+
 class VehiculosController extends Controller
 {
     /**
@@ -252,7 +254,7 @@ class VehiculosController extends Controller
                 ->count();
 
             $vehicleFav = array();
-            
+
             $user = Auth::user();
             if($user){
                 $vehicleFav = Favoritos::where('vehiculo_id', $vehiculo->id)->where('user_id', $user->id)->get();
