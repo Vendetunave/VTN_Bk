@@ -107,10 +107,10 @@ class VehiculosController extends Controller
             ->join('marcas AS MA', 'MA.id', 'M.marca_id')
             ->join('combustibles AS MO', 'MO.id', 'vehicles.combustible')
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
-            if($filtros['categoria'] === 'motos'){
-                ->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
-            }
             ->where('vehicles.activo', 1);
+        if($filtros['categoria'] === 'motos'){
+            $result->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
+        }
         //Tag search Filter
         if( $filtros['q'] ){
             $result->where('vehicles.title', 'LIKE', '%'.$filtros['q'].'%');
