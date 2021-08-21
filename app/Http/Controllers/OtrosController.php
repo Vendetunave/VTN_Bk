@@ -98,7 +98,8 @@ class OtrosController extends Controller
         $result = [
             'servicios' => $servicios,
             'tiposServicios' => $tiposServicios,
-            'ciudades' => $ciudades
+            'ciudades' => $ciudades,
+            'filtros' => $filtros
         ];
 
         return $result;
