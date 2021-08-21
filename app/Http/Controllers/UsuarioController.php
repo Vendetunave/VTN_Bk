@@ -245,4 +245,54 @@ class UsuarioController extends Controller
         ];
         return $result;
     }
+    public function profile_update(Request $request){
+        $userInfo = Users::where('id', $request->user_id)->first();
+        $userEmail = [];
+        if ($userInfo->email != $request->email) {
+            $userEmail = Users::where('email', $request->email)->get();
+        }
+
+        if ($request->passAct == null && $request->passNew == null) {
+            $user = \DB::table('users')->where('id', $request->idUser)
+                ->update([
+                    'nombre' => $request->name,
+                    'email' => (COUNT($userEmail) > 0) ? $userInfo->email : $request->email,
+                    'telefono' => $request->tel,
+                    'genero' => $request->genero,
+                    'fecha_nacimiento' => $request->fecha,
+                ]);
+        } else {
+            $user = \DB::table('users')->where('id', $request->idUser)
+                ->update([
+                    'nombre' => $request->name,
+                    'email' => (COUNT($userEmail) > 0) ? $userInfo->email : $request->email,
+                    'telefono' => $request->tel,
+                    'genero' => $request->genero,
+                    'fecha_nacimiento' => $request->fecha,
+                    'password' => md5($request->passNew),
+                ]);
+        }
+
+        /**if ($request->hasFile('file') && $request->cambiarImage == 1) {
+            $filenamewithextension = $request->file('file')->getClientOriginalName();
+            $filename = pathinfo($filenamewithextension, PATHINFO_FILENAME);
+            $extension = $request->file('file')->getClientOriginalExtension();
+            $name = str_random(4) . '_' . time();
+            $filenametostore = $name . '.' . $extension;
+
+            Storage::disk('s3')->put('vendetunave/images/usuarios/' . $filenametostore, fopen($request->file('file'), 'r+'), 'public');
+
+            $user = \DB::table('users')->where('id', $request->idUser)
+                ->update([
+                    'image' => $filenametostore,
+                ]);
+        }**/
+
+        $response = [
+            'state' => true,
+            'message' => (COUNT($userEmail) > 0) ? 'No se actualizo el email por ya se encuentra en uso' : 'Datos actualizado correctamente'
+        ];
+
+        return $response;
+    }
 }

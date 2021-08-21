@@ -33,6 +33,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('favoritos_vehiculo', 'UsuarioController@make_favorito_vehiculo');
     $router->post('remove_favorito_vehiculo', 'UsuarioController@remove_favorito_vehiculo');
     $router->post('remove_favorito_ficha', 'UsuarioController@remove_favorito_ficha');
+    $router->post('profile_update', 'UsuarioController@profile_update');
 
 });
 //Public routes
