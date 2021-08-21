@@ -59,11 +59,23 @@ class OtrosController extends Controller
     public function concesionarios()
     {
         $page = 1;
-        $servicios = Dealerships::select('dealerships.*');
+        $servicios = Dealerships::select('dealerships.*', 'CD.nombre AS ciudadLabel', 'TV.nombre AS tipoLabel')
+            ->join('ubicacion_ciudades AS CD', 'CD.id', 'dealerships.city_id')
+            ->join('tipo_vehiculos AS TV', 'TV.id', 'dealerships.type_vehicle');
+            ->join('dealerships_brands AS BR', 'BR.dealership_id', 'dealerships.id');
         $servicios = $servicios->offset(($page - 1) * 10)->limit(10)->get();
 
+        $collection = collect($servicios);
+        $filteredMarcas = $collection;
+
+        $contadores = array(
+            'tipo' => $filteredMarcas->countBy('tipoLabel'),
+            'ciudades' => $filteredMarcas->countBy('ciudadLabel'),
+            'marcas' => $filteredMarcas->countBy(''),
+        );
         $result = [
-            'servicios' => $servicios
+            'servicios' => $servicios,
+            'contadores' => $contadores,
         ];
 
         return $result;
