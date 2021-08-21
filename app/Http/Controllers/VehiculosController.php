@@ -90,10 +90,10 @@ class VehiculosController extends Controller
             'q' => $request->query('q') ? $request->query('q') : null
         );
         $selectArray = array(
-            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
-            'vehicles.ano', 'vehicles.kilometraje', 'UC.nombre AS labelCiudad',
+            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.precio','vehicles.condicion', 'vehicles.cilindraje',
+            'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'UC.nombre AS labelCiudad',
             'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca', 
-            'MO.nombre AS combustible', 'TA.nombre AS transmision'
+            'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TP.nombre AS tipoPrecioLabel'
         );
         if($filtros['categoria'] === 'motos'){
             $selectArray[] = 'TM.nombre AS tipoMotoLabel';
@@ -105,6 +105,7 @@ class VehiculosController extends Controller
             ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
             ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
             ->join('combustibles AS MO', 'MO.id', 'vehicles.combustible')
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
             ->where('vehicles.activo', 1);
