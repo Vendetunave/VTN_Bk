@@ -61,7 +61,7 @@ class OtrosController extends Controller
         $page = 1;
         $servicios = Dealerships::select('dealerships.*', 'CD.nombre AS ciudadLabel', 'TV.nombre AS tipoLabel')
             ->join('ubicacion_ciudades AS CD', 'CD.id', 'dealerships.city_id')
-            ->join('tipo_vehiculos AS TV', 'TV.id', 'dealerships.type_vehicle');
+            ->join('tipo_vehiculos AS TV', 'TV.id', 'dealerships.type_vehicle')
             ->join('dealerships_brands AS BR', 'BR.dealership_id', 'dealerships.id');
         $servicios = $servicios->offset(($page - 1) * 10)->limit(10)->get();
 
