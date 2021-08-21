@@ -11,6 +11,7 @@ use App\Models\Modelos;
 use App\Models\ImagesDataSheet;
 use App\Models\TipoVehiculos;
 use App\Models\Favoritos;
+use App\Models\Busquedas;
 
 use App\Models\Accesorios;
 
@@ -303,6 +304,15 @@ class VehiculosController extends Controller
 
             $user = Auth::user();
             if($user){
+                //Si esta logueado entonces almacena la busqueda
+                $existBusqueda = Busquedas::where('user_id', $user->id)->where('vehiculo_id', $vehiculo->id)->get();
+                if (COUNT($existBusqueda) == 0) {
+                    $busqueda = Busquedas::insert([
+                        'user_id' => $request->user,
+                        'vehiculo_id' => $vehiculo->id,
+                        'fecha' => date('Y-m-d'),
+                    ]);
+                }
                 $vehicleFav = Favoritos::where('vehiculo_id', $vehiculo->id)->where('user_id', $user->id)->get();
             }
 
