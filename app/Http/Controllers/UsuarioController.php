@@ -225,7 +225,7 @@ class UsuarioController extends Controller
         return $result;
     }
     public function remove_busqueda(Request $request){
-        $favorito = Busquedas::where('vehiculo_id', $request->id)->where('user_id', $request->user_id)->delete();
+        $favorito = Busquedas::where('vehiculo_id', $request->vehicle_id)->where('user_id', $request->user_id)->delete();
         $result = [
             'state' => true,
         ];
