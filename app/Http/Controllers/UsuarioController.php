@@ -231,4 +231,18 @@ class UsuarioController extends Controller
         ];
         return $result;
     }
+    public function remove_favorito_vehiculo(Request $request){
+        $favorito = Favoritos::where('vehiculo_id', $request->vehicle_id)->where('user_id', $request->user_id)->delete();
+        $result = [
+            'state' => true,
+        ];
+        return $result;
+    }
+    public function remove_favorito_ficha(Request $request){
+        $favorito = FavoritesDataSheets::where('datasheet_id', $request->ficha_id)->where('user_id', $request->user_id)->delete();
+        $result = [
+            'state' => true,
+        ];
+        return $result;
+    }
 }

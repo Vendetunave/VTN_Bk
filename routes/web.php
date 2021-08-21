@@ -31,6 +31,9 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('comment', 'UsuarioController@make_comment');
     $router->post('favoritos', 'UsuarioController@make_favorito');
     $router->post('favoritos_vehiculo', 'UsuarioController@make_favorito_vehiculo');
+    $router->post('remove_favorito_vehiculo', 'UsuarioController@remove_favorito_vehiculo');
+    $router->post('remove_favorito_ficha', 'UsuarioController@remove_favorito_ficha');
+
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
