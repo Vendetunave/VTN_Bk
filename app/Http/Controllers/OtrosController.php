@@ -8,6 +8,7 @@ use App\Models\Servicios;
 use App\Models\Dealerships;
 use App\Models\TiposServicios;
 use App\Models\ubicacion_ciudades;
+use App\Models\Marcas;
 
 
 class OtrosController extends Controller
@@ -65,17 +66,13 @@ class OtrosController extends Controller
             ->join('dealerships_brands AS BR', 'BR.dealership_id', 'dealerships.id');
         $servicios = $servicios->offset(($page - 1) * 10)->limit(10)->get();
 
-        $collection = collect($servicios);
-        $filteredMarcas = $collection;
+        $tiposServicios = Marcas::where('categoria_id', 1)->orderBy('nombre')->get();
+        $ciudades = ubicacion_ciudades::orderBy('nombre')->where('indicativo', 1)->get();
 
-        $contadores = array(
-            'tipo' => $filteredMarcas->countBy('tipoLabel'),
-            'ciudades' => $filteredMarcas->countBy('ciudadLabel'),
-            'marcas' => $filteredMarcas->countBy(''),
-        );
         $result = [
             'servicios' => $servicios,
-            'contadores' => $contadores,
+            'tiposServicios' => $tiposServicios,
+            'ciudades' => $ciudades
         ];
 
         return $result;
