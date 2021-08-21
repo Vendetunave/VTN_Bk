@@ -26,6 +26,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->get('publicaciones/{id}', 'UsuarioController@publicaciones');
     $router->get('favoritos/{id}', 'UsuarioController@favoritos');
     $router->get('busquedas/{id}', 'UsuarioController@busquedas');
+    $router->post('busqueda_remove', 'UsuarioController@remove_busqueda');
     $router->get('form_producto', 'UsuarioController@form_producto');
     $router->post('comment', 'UsuarioController@make_comment');
     $router->post('favoritos', 'UsuarioController@make_favorito');
