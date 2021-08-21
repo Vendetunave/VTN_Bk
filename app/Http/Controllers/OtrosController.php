@@ -81,7 +81,7 @@ class OtrosController extends Controller
             ->join('ubicacion_ciudades AS CD', 'CD.id', 'dealerships.city_id');
         
         if ($filtros['ciudad']) {
-            $servicios->where('ciudadLabel', $filtros['ciudad']);
+            $servicios->where('CD.nombre', $filtros['ciudad']);
         }
         if ($filtros['tipo']) {
             $servicios->where('dealerships.type_vehicle', $this->get_id_tipo($filtros['tipo']));
