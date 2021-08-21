@@ -57,15 +57,41 @@ class OtrosController extends Controller
 
         return $result;
     }
+    public function get_id_tipo($titulo){
+        switch ($titulo) {
+            case 'NUEVO':
+                return 1;
+            case 'USADO':
+                return 2;
+        }
+    }
+    public function get_id_marca($titulo){
+        $marca = Marcas::where('nombre', $titulo)->first();
+        return $marca->id;
+    }
     public function concesionarios()
     {
-        $page = 1;
-        $servicios = Dealerships::select('dealerships.*', 'CD.nombre AS ciudadLabel', 'TV.nombre AS tipoLabel')
-            ->join('ubicacion_ciudades AS CD', 'CD.id', 'dealerships.city_id')
-            ->join('tipo_vehiculos AS TV', 'TV.id', 'dealerships.type_vehicle')
-            ->join('dealerships_brands AS BR', 'BR.dealership_id', 'dealerships.id');
-        $servicios = $servicios->offset(($page - 1) * 10)->limit(10)->get();
-
+        $filtros = array(
+            'ciudad' => $request->query('ciudad') ? $request->query('ciudad') : null,
+            'tipo' => $request->query('tipo') ? $request->query('tipo') : null,
+            'marca' => $request->query('marca') ? $request->query('marca') : null,
+            'page' => $request->query('page') ? $request->query('page') : 1,
+        );
+        $servicios = Dealerships::select('dealerships.*', 'CD.nombre AS ciudadLabel')
+            ->join('ubicacion_ciudades AS CD', 'CD.id', 'dealerships.city_id');
+        
+        if ($filtros['ciudad']) {
+            $servicios->where('ciudadLabel', $filtros['ciudad']);
+        }
+        if ($filtros['tipo']) {
+            $servicios->where('dealerships.type_vehicle', $this->get_id_tipo($filtros['tipo']));
+        }
+        if ($filtros['marca']) {
+            $servicios->join('dealerships_brands AS DB', 'DB.dealership_id', 'dealerships.id')
+                ->where('DB.brand_id', $this->get_id_marca($filtros['marca']))
+                ->groupBy('dealerships.id');
+        }
+        $servicios = $servicios->offset(($filtros['page'] - 1) * 10)->limit(10)->get();
         $tiposServicios = Marcas::where('categoria_id', 1)->orderBy('nombre')->get();
         $ciudades = ubicacion_ciudades::orderBy('nombre')->where('indicativo', 1)->get();
 
