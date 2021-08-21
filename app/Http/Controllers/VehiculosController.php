@@ -89,11 +89,17 @@ class VehiculosController extends Controller
             'anio' => $request->query('anio') ? $request->query('anio') : null,
             'q' => $request->query('q') ? $request->query('q') : null
         );
+        $selectArray = array(
+            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
+            'vehicles.ano', 'vehicles.kilometraje', 'UC.nombre AS labelCiudad',
+            'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca', 
+            'MO.nombre AS combustible', 'TA.nombre AS transmision'
+        );
+        if($filtros['categoria'] === 'motos'){
+            $selectArray[] = 'TM.nombre AS tipoMotoLabel';
+        }
         $result = Vehicles::select(
-                'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.precio','vehicles.condicion',
-                'vehicles.ano', 'vehicles.kilometraje', 'UC.nombre AS labelCiudad',
-                'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca', 
-                'MO.nombre AS combustible', 'TA.nombre AS transmision'
+                $selectArray
             )
             ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
             ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
@@ -101,6 +107,9 @@ class VehiculosController extends Controller
             ->join('marcas AS MA', 'MA.id', 'M.marca_id')
             ->join('combustibles AS MO', 'MO.id', 'vehicles.combustible')
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
+            if($filtros['categoria'] === 'motos'){
+                ->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
+            }
             ->where('vehicles.activo', 1);
         //Tag search Filter
         if( $filtros['q'] ){
@@ -117,9 +126,6 @@ class VehiculosController extends Controller
         }
         //Cateoria Filter
         if ($filtros['categoria']) {
-            if($filtros['categoria'] === 'motos'){
-                $result->select('TM.nombre AS tipoMotoLabel')->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
-            }
             $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
         } else {
             $result->where('vehicles.tipo_vehiculo', 1);
