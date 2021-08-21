@@ -308,7 +308,7 @@ class VehiculosController extends Controller
                 $existBusqueda = Busquedas::where('user_id', $user->id)->where('vehiculo_id', $vehiculo->id)->get();
                 if (COUNT($existBusqueda) == 0) {
                     $busqueda = Busquedas::insert([
-                        'user_id' => $request->user,
+                        'user_id' => $user->id,
                         'vehiculo_id' => $vehiculo->id,
                         'fecha' => date('Y-m-d'),
                     ]);
