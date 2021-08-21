@@ -69,7 +69,7 @@ class OtrosController extends Controller
         $marca = Marcas::where('nombre', $titulo)->first();
         return $marca->id;
     }
-    public function concesionarios()
+    public function concesionarios(Request $request)
     {
         $filtros = array(
             'ciudad' => $request->query('ciudad') ? $request->query('ciudad') : null,
