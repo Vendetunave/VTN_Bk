@@ -110,6 +110,10 @@ class VehiculosController extends Controller
             ->join('combustibles AS MO', 'MO.id', 'vehicles.combustible')
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
             ->where('vehicles.activo', 1);
+        /****/
+        $collectionMarcas = collect($result);
+        $contadorMarcas = $collectionMarcas->countBy('marca');
+        
         if($filtros['categoria'] === 'motos'){
             $result->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
         }
@@ -202,7 +206,7 @@ class VehiculosController extends Controller
         $filteredMarcas = $collection;
 
         $contadores = array(
-            'marcas' => $filteredMarcas->countBy('marca'),
+            'marcas' => $contadorMarcas,
             'modelos' => $filteredMarcas->countBy('modelo'),
             'anios' => $filteredMarcas->countBy('ano'),
             'caja' => $filteredMarcas->countBy('transmision'),
