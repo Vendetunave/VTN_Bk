@@ -253,7 +253,7 @@ class UsuarioController extends Controller
         }
 
         if ($request->passAct == null && $request->passNew == null) {
-            $user = \DB::table('users')->where('id', $request->idUser)
+            $user = \DB::table('users')->where('id', $request->user_id)
                 ->update([
                     'nombre' => $request->name,
                     'email' => (COUNT($userEmail) > 0) ? $userInfo->email : $request->email,
@@ -262,7 +262,7 @@ class UsuarioController extends Controller
                     'fecha_nacimiento' => $request->fecha,
                 ]);
         } else {
-            $user = \DB::table('users')->where('id', $request->idUser)
+            $user = \DB::table('users')->where('id', $request->user_id)
                 ->update([
                     'nombre' => $request->name,
                     'email' => (COUNT($userEmail) > 0) ? $userInfo->email : $request->email,
