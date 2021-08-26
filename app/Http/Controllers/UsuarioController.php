@@ -22,7 +22,7 @@ use App\Models\ubicacion_ciudades;
 use App\Models\ubicacion_departamentos;
 use App\Models\tipo_accesorio;
 
-
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class UsuarioController extends Controller
@@ -269,7 +269,7 @@ class UsuarioController extends Controller
                     'telefono' => $request->tel,
                     'genero' => $request->genero,
                     'fecha_nacimiento' => $request->fecha,
-                    'password' => md5($request->passNew),
+                    'password' => Hash::make($request->passNew)
                 ]);
         }
 
