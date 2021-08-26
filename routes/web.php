@@ -58,4 +58,5 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('comunidad', 'ComunidadController@show');
     $router->get('pregunta/{slug}', 'ComunidadController@detalle');
     $router->post('newsletter', 'HomeController@newsletter');
+    $router->post('financiacion', 'OtrosController@financiacion');
 });
