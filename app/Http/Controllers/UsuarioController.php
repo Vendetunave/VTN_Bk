@@ -255,20 +255,18 @@ class UsuarioController extends Controller
         if ($request->passAct == null && $request->passNew == null) {
             $user = \DB::table('users')->where('id', $request->user_id)
                 ->update([
-                    'nombre' => $request->name,
-                    'email' => (COUNT($userEmail) > 0) ? $userInfo->email : $request->email,
-                    'telefono' => $request->tel,
+                    'nombre' => $request->nombre,
+                    'telefono' => $request->telefono,
                     'genero' => $request->genero,
-                    'fecha_nacimiento' => $request->fecha,
+                    'fecha_nacimiento' => $request->fecha_nacimiento,
                 ]);
         } else {
             $user = \DB::table('users')->where('id', $request->user_id)
                 ->update([
-                    'nombre' => $request->name,
-                    'email' => (COUNT($userEmail) > 0) ? $userInfo->email : $request->email,
-                    'telefono' => $request->tel,
+                    'nombre' => $request->nombre,
+                    'telefono' => $request->telefono,
                     'genero' => $request->genero,
-                    'fecha_nacimiento' => $request->fecha,
+                    'fecha_nacimiento' => $request->fecha_nacimiento,
                     'password' => Hash::make($request->passNew)
                 ]);
         }
