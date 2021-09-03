@@ -109,35 +109,42 @@ class OtrosController extends Controller
         return $result;
     }
     public function financiacion(Request $request){
-        $finacicacion = financiacion::insert([ 
-            'nombre' => $request->nombre, 
-            'apellido' => $request->apellido, 
-            'fecha_nacimiento' => $request->fecha_nacimiento, 
-            'cuanto_cuesta' => str_replace('.', '', $request->cuanto_cuesta), 
-            'cuota_inicial' => str_replace('.', '', $request->cuota_inicial), 
-            'numero_cuotas' => $request->cuotas, 
-            'datacredito' => $request->datacredito, 
-            'rango_salarial' => $request->salario, 
-            'whatsapp' => $request->whatsapp, 
-            'email' => $request->email, 
-            'creado' => date('Y-m-d H:i:s')
-        ]);
-
-        $config = Config::select('correo_financiacion')->first();
-
-        $subject = "Alguien está interesado en el servicio de financiación";
-        $for = $config->correo_financiacion;
-
-        Mail::send('mailFinanciacion', $request->all(), function ($msj) use ($subject, $for) {
-            $msj->from("no-reply@vendetunave.co", "VendeTuNave");
-            $msj->subject($subject);
-            $msj->to($for);
-        });
-
-        $result = [
-            'status' => true
-        ];
-
-        return $result;
+        try {
+            $finacicacion = financiacion::insert([ 
+                'nombre' => $request->nombre, 
+                'apellido' => $request->apellido, 
+                'fecha_nacimiento' => $request->fecha_nacimiento, 
+                'cuanto_cuesta' => str_replace('.', '', $request->cuanto_cuesta), 
+                'cuota_inicial' => str_replace('.', '', $request->cuota_inicial), 
+                'numero_cuotas' => $request->cuotas, 
+                'datacredito' => $request->datacredito, 
+                'rango_salarial' => $request->salario, 
+                'whatsapp' => $request->whatsapp, 
+                'email' => $request->email, 
+                'creado' => date('Y-m-d H:i:s')
+            ]);
+    
+            $config = Config::select('correo_financiacion')->first();
+    
+            $subject = "Alguien está interesado en el servicio de financiación";
+            $for = $config->correo_financiacion;
+    
+            Mail::send('mailFinanciacion', $request->all(), function ($msj) use ($subject, $for) {
+                $msj->from("no-reply@vendetunave.co", "VendeTuNave");
+                $msj->subject($subject);
+                $msj->to($for);
+            });
+    
+            $result = [
+                'status' => true
+            ];
+    
+            return $result;
+        } catch (\Throwable $th) {
+            $result = [
+                'status' => false
+            ];
+        }
+        
     }
 }
