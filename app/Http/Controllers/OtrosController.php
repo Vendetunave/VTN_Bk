@@ -144,6 +144,8 @@ class OtrosController extends Controller
             $result = [
                 'status' => false
             ];
+
+            return $result;
         }
         
     }
