@@ -208,7 +208,7 @@ class VehiculosController extends Controller
         $filteredMarcas = $collection;
 
         $contadores = array(
-            'marcas' => $contadorMarcas,
+            'marcas' => $filteredMarcas->countBy('marca'),
             'modelos' => $filteredMarcas->countBy('modelo'),
             'anios' => $filteredMarcas->countBy('ano'),
             'caja' => $filteredMarcas->countBy('transmision'),
