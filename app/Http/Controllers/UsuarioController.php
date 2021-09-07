@@ -24,6 +24,7 @@ use App\Models\tipo_accesorio;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class UsuarioController extends Controller
 {
@@ -271,20 +272,20 @@ class UsuarioController extends Controller
                 ]);
         }
 
-        /**if ($request->hasFile('file') && $request->cambiarImage == 1) {
+        if ($request->hasFile('file') && $request->cambiarImage == 1) {
             $filenamewithextension = $request->file('file')->getClientOriginalName();
             $filename = pathinfo($filenamewithextension, PATHINFO_FILENAME);
             $extension = $request->file('file')->getClientOriginalExtension();
-            $name = str_random(4) . '_' . time();
+            $name = Str::random(4) . '_' . time();
             $filenametostore = $name . '.' . $extension;
 
-            Storage::disk('s3')->put('vendetunave/images/usuarios/' . $filenametostore, fopen($request->file('file'), 'r+'), 'public');
+            \Storage::disk('s3')->put('vendetunave/images/usuarios/' . $filenametostore, fopen($request->file('file'), 'r+'), 'public');
 
-            $user = \DB::table('users')->where('id', $request->idUser)
+            $user = \DB::table('users')->where('id', $request->user_id)
                 ->update([
                     'image' => $filenametostore,
                 ]);
-        }**/
+        }
 
         $response = [
             'state' => true,
