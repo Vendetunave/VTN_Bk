@@ -149,4 +149,15 @@ class OtrosController extends Controller
         }
         
     }
+
+    public function get_cities($id)
+    {
+        $ciudades = ubicacion_ciudades::orderBy('nombre')->where('id_departamento', $id)->get();
+
+        $result = [
+            'ciudades' => $ciudades
+        ];
+
+        return $result;
+    }
 }
