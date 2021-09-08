@@ -3,18 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManagerStatic as Image;
 
 use App\Models\Vehicles;
 use App\Models\imagenes;
 use App\Models\DataSheet;
+use App\Models\Marcas;
 use App\Models\Modelos;
 use App\Models\ImagesDataSheet;
 use App\Models\TipoVehiculos;
 use App\Models\Favoritos;
 use App\Models\Busquedas;
+use App\Models\Imagenes_vehiculo;
 
 use App\Models\Accesorios;
-
 use DateTime;
 
 use Illuminate\Support\Facades\Auth;
@@ -606,5 +609,140 @@ class VehiculosController extends Controller
             'modelos' => $modelos,
         ];
         return $result;
+    }
+    public function marcas($id){
+        $marcas = Marcas::select('*')->where('categoria_id', $id)->get();
+        $result = [
+            'marcas' => $marcas,
+        ];
+        return $result;
+    }
+
+    public function insert(Request $request)
+    {
+        try {
+            $vehiculosSku = Vehicles::all()->count();
+            $sku = '000000';
+            $vehiculosSku = ($vehiculosSku * 1) + 1;
+            if ($vehiculosSku < 10) {
+                $sku = '00000' . $vehiculosSku;
+            }
+            if ($vehiculosSku >= 10 && $vehiculosSku < 100) {
+                $sku = '0000' . $vehiculosSku;
+            }
+            if ($vehiculosSku >= 100 && $vehiculosSku < 1000) {
+                $sku = '000' . $vehiculosSku;
+            }
+            if ($vehiculosSku >= 1000 && $vehiculosSku < 10000) {
+                $sku = '00' . $vehiculosSku;
+            }
+            if ($vehiculosSku >= 10000 && $vehiculosSku < 100000) {
+                $sku = '0' . $vehiculosSku;
+            }
+            if ($vehiculosSku >= 100000) {
+                $sku = $vehiculosSku;
+            }
+
+            $precioVehiculo = str_replace('.', '', $request->precio_vehiculo);
+            $kmVehiculo = str_replace('.', '', $request->kilometraje_vehiculo);
+            $cilindrajeVehiculo = str_replace('.', '', $request->cilindraje_vehiculo);
+
+            $vehiculoId = Vehicles::insertGetId([
+                'title' => $request->titulo_vehiculo,
+                'descripcion' => $request->descripcion_vehiculo,
+                'condicion' => $request->estado_vehiculo,
+                'precio' => (int) $precioVehiculo,
+                'tipo_precio' => $request->tipo_precio_vehiculo,
+                'promocion' => $request->promocion,
+                'permuta' => $request->permuta,
+                'kilometraje' => (int) $kmVehiculo,
+                'combustible' => $request->combustible_vehiculo,
+                'color' => $request->color_vehiculo,
+                'transmision' => $request->transmision_vehiculo,
+                'placa' => $request->placa_vehiculo,
+                'ciudad_id' => $request->ciudad_vehiculo,
+                'vendedor_id' => 1,
+                'activo' => 0,
+                'aprobado_promocion' => 0,
+                'tipo_vehiculo' => $request->tipo_vehiculo,
+                'modelo_id' => $request->modelo,
+                'ano' => $request->anio,
+                'fecha_creacion' => new DateTime(),
+                'fecha_publicacion' => date("Y-m-d H:i:s"),
+                'vendido' => 0,
+                'contacto' => str_replace(' ', '', $request->contacto_vehiculo),
+                'sku' => $sku,
+                'cilindraje' => (int) $cilindrajeVehiculo,
+                'financiacion' => $request->financiacion,
+                'tipo_moto' => ($request->tipo_vehiculo === 5)? 1 : 0,
+                'blindado' => ($request->blindado_vehiculo == 2)? 0: $request->blindado_vehiculo,
+            ]);
+
+            $images = $request->images;
+            foreach ($images as $keyImage => $itemImage) {
+                $image = $itemImage;
+                $image = str_replace('data:image/jpeg;base64,', '', $image);
+                $image = str_replace(' ', '+', $image);
+                $name = uniqid();
+                $imageName = $name . '.' . 'jpeg';
+
+
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $imageName, base64_decode($image), 'public');
+
+                $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                if (($keyImage + 1) == 1) {
+                    $imageThumb = Image::make(base64_decode($image));
+                    $w = $imageThumb->width();
+                    $h = $imageThumb->height();
+                    if ($w > $h) {
+                        $imageThumb->resize(300, null, function ($constraint) {
+                            $constraint->aspectRatio();
+                        });
+                    } else {
+                        $imageThumb->resize(null, 300, function ($constraint) {
+                            $constraint->aspectRatio();
+                        });
+                    }
+
+                    $imageThumbJpeg = $imageThumb;
+                    $imageThumb->encode('webp', 100);
+                    $imageThumbJpeg->encode('jpeg', 100);
+
+                    Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+                    Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.jpeg', $imageThumbJpeg, 'public');
+                }
+
+                $imagenId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'jpeg',
+                    'order' => ($keyImage + 1),
+                    'id_vehicle' => $vehiculoId,
+                    'new_image' => (($keyImage + 1) == 1) ? 2 : 1
+                ]);
+
+                $imagevehiculo = Imagenes_vehiculo::insert([
+                    'id_vehicle' => $vehiculoId,
+                    'id_image' => $imagenId
+                ]);
+            }
+
+            $response = [
+                'vehiculoId' => $vehiculoId,
+                'status' => true,
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'error' => $th,
+                'status' => false,
+            ];
+
+            return $response;
+        }
+
     }
 }

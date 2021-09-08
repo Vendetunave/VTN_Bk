@@ -22,6 +22,8 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->get('me', 'AuthController@me');
     $router->post('register', 'AuthController@register');
 
+    $router->post('vehicle_insert', 'VehiculosController@insert');
+
     $router->get('profile/{id}', 'UsuarioController@profile');
     $router->get('publicaciones/{id}', 'UsuarioController@publicaciones');
     $router->get('favoritos/{id}', 'UsuarioController@favoritos');
@@ -42,7 +44,9 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('config', 'HomeController@config');
     $router->get('vehiculos', 'VehiculosController@find');
     $router->get('vehiculo/{slug}', 'VehiculosController@detalle');
+    $router->get('ciudades/{id}', 'OtrosController@get_cities');
     $router->get('modelos/{id}', 'VehiculosController@modelos');
+    $router->get('marcas/{id}', 'VehiculosController@marcas');
 
     $router->get('fichas_tecnicas', 'VehiculosController@fichas_tecnicas');
     $router->get('ficha_tecnica/{slug}', 'VehiculosController@ficha_tecnica');

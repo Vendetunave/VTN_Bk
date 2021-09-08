@@ -12,6 +12,7 @@
         "php": "^7.3|^8.0",
         "barryvdh/laravel-dompdf": "^0.9.0",
         "illuminate/mail": "^8.56",
+        "intervention/image": "^2.6",
         "laravel/lumen-framework": "^8.0",
         "league/flysystem-aws-s3-v3": "~1.0",
         "tymon/jwt-auth": "dev-develop"
