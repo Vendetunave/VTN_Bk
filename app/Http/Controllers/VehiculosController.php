@@ -114,14 +114,23 @@ class VehiculosController extends Controller
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
             ->where('vehicles.activo', 1);
         /****/
+
+        if($filtros['categoria'] === 'motos'){
+            $result->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
+        }
+
+        if ($filtros['categoria']) {
+            $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
+        } else {
+            $result->where('vehicles.tipo_vehiculo', 1);
+        }
+        
         $marcas_all = $result->groupBy('vehicles.id')->get();
         $collectionMarcas = collect($marcas_all);
         $colector = $collectionMarcas;
         $contadorMarcas = $colector->countBy('marca');
         
-        if($filtros['categoria'] === 'motos'){
-            $result->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
-        }
+        
         //Tag search Filter
         if( $filtros['q'] ){
             $result->where('vehicles.title', 'LIKE', '%'.$filtros['q'].'%');
@@ -136,11 +145,7 @@ class VehiculosController extends Controller
             $result->where('vehicles.tipo_moto', $this->parse_slug_id_tipo($filtros['tipo']));
         }
         //Cateoria Filter
-        if ($filtros['categoria']) {
-            $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
-        } else {
-            $result->where('vehicles.tipo_vehiculo', 1);
-        }
+        
         if ($filtros['marca']) {
             $result->where('MA.nombre', $filtros['marca']);
         }
@@ -211,7 +216,7 @@ class VehiculosController extends Controller
         $filteredMarcas = $collection;
 
         $contadores = array(
-            'marcas' => $filteredMarcas->countBy('marca'),
+            'marcas' => $contadorMarcas,
             'modelos' => $filteredMarcas->countBy('modelo'),
             'anios' => $filteredMarcas->countBy('ano'),
             'caja' => $filteredMarcas->countBy('transmision'),
