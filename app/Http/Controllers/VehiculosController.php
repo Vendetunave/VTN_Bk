@@ -348,19 +348,17 @@ class VehiculosController extends Controller
     }
     public function fichas_tecnicas(Request $request){
         $filtros = array(
-            'categoria' => $request->query('categoria') ? $request->query('categoria') : null,
-            'ubicacion' => $request->query('ubicacion') ? $request->query('ubicacion') : null,
+            'tipo' => $request->query('tipo') ? $request->query('tipo') : null,
             'marca' => $request->query('marca') ? $request->query('marca') : null,
-            'motor' => $request->query('motor') ? $request->query('motor') : null,
             'modelo' => $request->query('modelo') ? $request->query('modelo') : null,
-            'estado' => $request->query('estado') ? $request->query('estado') : null,
+            'combustible' => $request->query('combustible') ? $request->query('combustible') : null,
             'transmision' => $request->query('transmision') ? $request->query('transmision') : null,
-            'kilometraje' => $request->query('kilometraje') ? $request->query('kilometraje') : null,
             'precio' => $request->query('precio') ? $request->query('precio') : null,
             'orden' => $request->query('orden') ? $request->query('orden') : null,
             'page' => $request->query('page') ? $request->query('page') : 1,
             'q' => $request->query('q') ? $request->query('q') : null
         );
+
         $result = DataSheet::select(
             'data_sheet.id',
             'data_sheet.title',
@@ -396,9 +394,38 @@ class VehiculosController extends Controller
             ->join('modelos AS M', 'M.id', 'data_sheet.model_id')
             ->join('marcas AS MA', 'MA.id', 'M.marca_id')
             ->where('data_sheet.active', 1);
+
         
-        if( $filtros['q'] ){
+        if($filtros['q']){
             $result->where('data_sheet.title', 'LIKE', '%'.$filtros['q'].'%');
+        }
+        if($filtros['tipo']){
+            $result->where('data_sheet.type', $filtros['tipo']);
+        }
+
+        if($filtros['marca']){
+            $result->where('MA.nombre', $filtros['marca']);
+        }
+
+        $total_all = $result->groupBy('data_sheet.id')->get();
+
+        if($filtros['modelo']){
+            $result->where('M.nombre', $filtros['modelo']);
+        }
+
+        if($filtros['transmision']){
+            $result->where('T.nombre', $filtros['transmision']);
+        }
+
+        if($filtros['combustible']){
+            $result->where('C.nombre', $filtros['combustible']);
+        }
+        
+
+        if ($filtros['precio']) {
+            $decodeParam = $filtros['precio'];
+            $arrayPrices = explode(":", $decodeParam);
+            $result->whereBetween('price', $arrayPrices);
         }
 
         switch ($filtros['orden']) {
@@ -412,7 +439,6 @@ class VehiculosController extends Controller
                 $result->orderBy('data_sheet.id', 'DESC');
         }
         $total_records = count($result->groupBy('data_sheet.id')->get());
-        $total_all = $result->groupBy('data_sheet.id')->get();
         $result = $result->groupBy('data_sheet.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
 
         //Filtros complete
@@ -421,8 +447,9 @@ class VehiculosController extends Controller
 
         $contadores = array(
             'tipo' => $filteredMarcas->countBy('tipo'),
-            'caja' => $filteredMarcas->countBy('transmisionLabel'),
+            'transmision' => $filteredMarcas->countBy('transmisionLabel'),
             'marca' => $filteredMarcas->countBy('marca'),
+            'modelo' => $filteredMarcas->countBy('modelo'),
             'combustible' => $filteredMarcas->countBy('combustibleLabel')
         );
         $response = [
@@ -666,7 +693,7 @@ class VehiculosController extends Controller
                 'transmision' => $request->transmision_vehiculo,
                 'placa' => $request->placa_vehiculo,
                 'ciudad_id' => $request->ciudad_vehiculo,
-                'vendedor_id' => 1,
+                'vendedor_id' => $request->user_id,
                 'activo' => 0,
                 'aprobado_promocion' => 0,
                 'tipo_vehiculo' => $request->tipo_vehiculo,
