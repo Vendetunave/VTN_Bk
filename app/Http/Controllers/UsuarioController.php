@@ -38,14 +38,16 @@ class UsuarioController extends Controller
         $this->middleware('auth');
     }
 
-    public function profile($id){
-        $result = Users::select( 'nombre', 'telefono', 'email', 'genero', 'fecha_nacimiento', 'image')
-                ->where('id', $id)
-                ->first();
+    public function profile($id)
+    {
+        $result = Users::select('nombre', 'telefono', 'email', 'genero', 'fecha_nacimiento', 'image')
+            ->where('id', $id)
+            ->first();
         $result->status = true;
         return $result;
     }
-    public function busquedas(Request $request, $id){
+    public function busquedas(Request $request, $id)
+    {
 
         $page = $request->query('page') ? $request->query('page') : 1;
         $busquedasTotal = Busquedas::leftJoin('vehicles AS V', 'V.id', 'busquedas.vehiculo_id')
@@ -72,7 +74,8 @@ class UsuarioController extends Controller
 
         return $result;
     }
-    public function favoritos(Request $request, $id){
+    public function favoritos(Request $request, $id)
+    {
 
         $vehiculos = Favoritos::select('favoritos.id', 'favoritos.vehiculo_id', 'V.title', 'V.precio', 'I.nombre AS nameImage', 'I.extension', 'UC.nombre AS labelCiudad')
             ->join('vehicles AS V', 'V.id', 'favoritos.vehiculo_id')
@@ -84,7 +87,7 @@ class UsuarioController extends Controller
             ->groupBy('V.id')
             ->orderBy('favoritos.id', 'DESC')
             ->get();
-        
+
         $fichas_tecnicas = FavoritesDataSheets::select()
             ->join('data_sheet AS DS', 'DS.id', 'favorites_data_sheet.datasheet_id')
             ->join('images_data_sheet AS I', 'I.datasheet_id', \DB::raw('DS.id AND I.order = 1'))
@@ -98,9 +101,9 @@ class UsuarioController extends Controller
             'fichas_tecnicas' => $fichas_tecnicas
         ];
         return $result;
-
     }
-    public function publicaciones(Request $request, $id){
+    public function publicaciones(Request $request, $id)
+    {
         /****/
         $vehicles = Vehicles::select(
             'vehicles.id',
@@ -116,15 +119,15 @@ class UsuarioController extends Controller
             'I.extension',
             'M.nombre AS modeloLabel'
         )
-        ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
-        ->leftJoin('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
-        ->leftJoin('imagenes AS I', 'I.id', 'IV.id_image')
-        ->leftJoin('modelos AS M', 'M.id', 'vehicles.modelo_id')
-        ->where('vehicles.vendedor_id', $id)
-        ->where('vehicles.vendido', 0)
-        ->orderBy('vehicles.fecha_creacion', 'DESC')
-        ->groupBy('vehicles.id')
-        ->get();
+            ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+            ->leftJoin('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->leftJoin('imagenes AS I', 'I.id', 'IV.id_image')
+            ->leftJoin('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->where('vehicles.vendedor_id', $id)
+            ->where('vehicles.vendido', 0)
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->groupBy('vehicles.id')
+            ->get();
 
         $accesorios = Accesorios::select(
             'accesorios.id',
@@ -152,9 +155,9 @@ class UsuarioController extends Controller
             'accesorios' => $accesorios
         ];
         return $result;
-
     }
-    public function form_producto(Request $request){
+    public function form_producto(Request $request)
+    {
 
         $categories = TipoVehiculos::all();
         $tipoAccesorio = tipo_accesorio::all();
@@ -177,7 +180,8 @@ class UsuarioController extends Controller
         ];
         return $result;
     }
-    public function make_comment(Request $request){
+    public function make_comment(Request $request)
+    {
         $user = Users::where('id', $request->id)->first();
         if ($user->locked == 0) {
             $respuesta = Respuestas::insert(['pregunta_id' => $request->idPregunta, 'respuesta' => $request->comentario, 'user_id' => $request->id, 'fecha' => date('Y-m-d H:i:s')]);
@@ -187,7 +191,8 @@ class UsuarioController extends Controller
         ];
         return $result;
     }
-    public function make_favorito(Request $request){
+    public function make_favorito(Request $request)
+    {
 
         FavoritesDataSheets::where('datasheet_id', $request->idVehicle)->where('user_id', $request->idUser)->delete();
         $favorito = FavoritesDataSheets::insert([
@@ -201,7 +206,8 @@ class UsuarioController extends Controller
         ];
         return $result;
     }
-    public function make_favorito_vehiculo(Request $request){
+    public function make_favorito_vehiculo(Request $request)
+    {
         $accion = 0;
         if ($request->state) {
             $favorito = Favoritos::insert([
@@ -225,35 +231,60 @@ class UsuarioController extends Controller
         }
         return $result;
     }
-    public function remove_busqueda(Request $request){
+    public function remove_busqueda(Request $request)
+    {
         $favorito = Busquedas::where('vehiculo_id', $request->vehicle_id)->where('user_id', $request->user_id)->delete();
         $result = [
             'state' => true,
         ];
         return $result;
     }
-    public function remove_favorito_vehiculo(Request $request){
+    public function remove_favorito_vehiculo(Request $request)
+    {
         $favorito = Favoritos::where('vehiculo_id', $request->vehicle_id)->where('user_id', $request->user_id)->delete();
         $result = [
             'state' => true,
         ];
         return $result;
     }
-    public function remove_favorito_ficha(Request $request){
+    public function remove_favorito_ficha(Request $request)
+    {
         $favorito = FavoritesDataSheets::where('datasheet_id', $request->ficha_id)->where('user_id', $request->user_id)->delete();
         $result = [
             'state' => true,
         ];
         return $result;
     }
-    public function profile_update(Request $request){
+    public function profile_update(Request $request)
+    {
         $userInfo = Users::where('id', $request->user_id)->first();
         $userEmail = [];
         if ($userInfo->email != $request->email) {
             $userEmail = Users::where('email', $request->email)->get();
         }
 
-        if ($request->passAct == null && $request->passNew == null) {
+        if ($request->old_password != null) {
+
+            $responseFailPassword = [
+                'state' => false,
+                'message' => 'La contraseña actual no coincide con tu contraseña'
+            ];
+            if ($userInfo->password_encrypt) {
+                if (md5($request->old_password) !== $userInfo->password) {
+                    return $responseFailPassword;
+                }
+            } else {
+                $credentials = array(
+                    "email" => $userInfo->email,
+                    "password" => $request->old_password
+                );
+                if (!$token = Auth::attempt($credentials)) {
+                    return $responseFailPassword;
+                }
+            }
+        }
+
+        if ($request->old_password == null) {
             $user = \DB::table('users')->where('id', $request->user_id)
                 ->update([
                     'nombre' => $request->nombre,
@@ -268,7 +299,8 @@ class UsuarioController extends Controller
                     'telefono' => $request->telefono,
                     'genero' => $request->genero,
                     'fecha_nacimiento' => $request->fecha_nacimiento,
-                    'password' => Hash::make($request->passNew)
+                    'password' => Hash::make($request->new_password),
+                    'password_encrypt' => false
                 ]);
         }
 
@@ -288,7 +320,7 @@ class UsuarioController extends Controller
         }
 
         $response = [
-            'state' => true,
+            'state' => (COUNT($userEmail) > 0) ? false : true,
             'message' => (COUNT($userEmail) > 0) ? 'No se actualizo el email por ya se encuentra en uso' : 'Datos actualizado correctamente'
         ];
 
