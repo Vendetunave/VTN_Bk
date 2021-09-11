@@ -16,6 +16,7 @@ use App\Models\TipoVehiculos;
 use App\Models\Favoritos;
 use App\Models\Busquedas;
 use App\Models\Imagenes_vehiculo;
+use App\Models\imagenes_accesorios;
 
 use App\Models\Accesorios;
 use DateTime;
@@ -776,5 +777,66 @@ class VehiculosController extends Controller
             return $response;
         }
 
+    }
+
+    public function insert_accessory(Request $request)
+    {
+        try {
+            $precio = str_replace('.', '', $request->precio);
+
+            $accesorios = Accesorios::insertGetId([
+                'title' => $request->titulo,
+                'descripcion' => $request->descripcion,
+                'precio' => (int) $precio,
+                'tipo_precio' => $request->tipo_precio,
+                'ciudad_id' => $request->ciudad,
+                'condicion' => $request->estado,
+                'vendedor_id' => $request->user_id,
+                'activo' => 0,
+                'tipo_accesorio' => $request->categoria,
+                'fecha_creacion' => new DateTime(),
+            ]);
+
+
+            $images = $request->images;
+            foreach ($images as $keyImage => $itemImage) {
+                $image = $itemImage;
+                $image = str_replace('data:image/jpeg;base64,', '', $image);
+                $image = str_replace(' ', '+', $image);
+                $name = uniqid();
+                $imageName = $name . '.' . 'jpeg';
+
+                Storage::disk('s3')->put('vendetunave/images/accesorios/' . $imageName, base64_decode($image), 'public');
+                $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/accesorios/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imagenId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/accesorios/',
+                    'extension' => 'jpeg',
+                    'order' => ($keyImage + 1),
+                    'new_image' => 1
+                ]);
+
+                $imageAcce = imagenes_accesorios::insert([
+                    'accesorio_id' => $accesorios,
+                    'image_id' => $imagenId
+                ]);
+            }
+
+            $response = [
+                'accessory' => $accesorios,
+                'status' => true,
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'error' => $th,
+                'status' => false,
+            ];
+
+            return $response;
+        }
     }
 }
