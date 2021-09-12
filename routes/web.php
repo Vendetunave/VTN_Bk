@@ -23,6 +23,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('register', 'AuthController@register');
 
     $router->post('vehicle_insert', 'VehiculosController@insert');
+    $router->post('accessory_insert', 'VehiculosController@insert_accessory');
 
     $router->get('profile/{id}', 'UsuarioController@profile');
     $router->get('publicaciones/{id}', 'UsuarioController@publicaciones');
