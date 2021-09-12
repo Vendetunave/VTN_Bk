@@ -24,17 +24,20 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
         try {
-            /**$user = new User;
-            $user->name = $request->input('name');
+            $user = new User;
+            $user->nombre = $request->input('nombre');
             $user->email = $request->input('email');
+            $user->newsletter = ($request->input('remember', false)) ? 1 : 0;
             $plainPassword = $request->input('password');
-            $user->password = app('hash')->make($plainPassword);
-            $user->save();**/
+            $user->password = Hash::make($plainPassword);
+            $user->password_encrypt = false;
+            $user->save();
+            
             //return successful response
             return response()->json(['user' => $user, 'message' => 'CREATED'], 201);
         } catch (\Exception $e) {
             //return error message
-            return response()->json(['message' => 'User Registration Failed!'], 409);
+            return response()->json(['message' => $e], 409);
         }
     }
     public function login(Request $request){
