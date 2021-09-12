@@ -22,21 +22,45 @@ class ComunidadController extends Controller
         //$this->middleware('auth');
     }
 
-    public function show()
+    public function show(Request $request)
     {
-        $page = 1;
+        $filtros = array(
+            'page' => $request->query('page') ? $request->query('page') : 1,
+            'q' => $request->query('q') ? $request->query('q') : null
+        );
+
         $preguntas = Pregunta::select( 'pregunta.*', \DB::raw('COUNT(R.id) AS repuestas'), \DB::raw('MAX(R.fecha) AS ult_respuesta') )
             ->leftJoin('respuestas AS R', 'R.pregunta_id', 'pregunta.id')
             ->where('pregunta.aprobado', 1);
+
+            if($filtros['q']){
+                $search = $filtros['q'];
+                $preguntas->Where(function ($query) use ($search) {
+                    $query->orWhere('pregunta.titulo', 'LIKE', '%' . $search . '%');
+                    $query->orWhere('pregunta.descripcion', 'LIKE', '%' . $search . '%');
+                    $query->orWhere('R.respuesta', 'LIKE', '%' . $search . '%');
+                });
+
+            }
+
+        $total_records = count($preguntas->groupBy('pregunta.id')->get());
         $preguntas = $preguntas->groupBy('pregunta.id')
             ->orderBy('pregunta.fecha', 'DESC')
-            ->offset(($page - 1) * 10)->limit(10)->get();
+            ->offset(($filtros['page'] - 1) * 10)->limit(10)->get();
+
         $tags = Tags::select( 'tags.id', 'tags.tag', 'PT.pregunta_id' )
-            ->leftJoin('preguntas_tags  AS PT', 'PT.tag_id', 'tags.id')
-            ->get();
+            ->leftJoin('preguntas_tags  AS PT', 'PT.tag_id', 'tags.id');
+            foreach ($preguntas as $pregunta) {
+                $tags->orWhere('PT.pregunta_id', $pregunta->id);
+            }
+            $tags = $tags->get();
+
         $result = [
+            'page' => $filtros['page'],
+            'q' => $filtros['q'],
             'preguntas' => $preguntas,
             'tags' => $tags,
+            'total_records' => $total_records
         ];
         return $result;
         
