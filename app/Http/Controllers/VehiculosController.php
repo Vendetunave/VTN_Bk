@@ -116,14 +116,19 @@ class VehiculosController extends Controller
             ->where('vehicles.activo', 1);
         /****/
 
+        
         if($filtros['categoria'] === 'motos'){
             $result->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
         }
 
+        //Filtros complete
+        $total_all = $result->groupBy('vehicles.id')->get();
+        $collection = collect($total_all);
+        $filteredMarcas = $collection;
+
+
         if ($filtros['categoria']) {
             $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
-        } else {
-            $result->where('vehicles.tipo_vehiculo', 1);
         }
         
         $marcas_all = $result->groupBy('vehicles.id')->get();
@@ -209,12 +214,9 @@ class VehiculosController extends Controller
             $result->where('vehicles.condicion', $filtros['estado']);
         }
         $total_records = count($result->groupBy('vehicles.id')->get());
-        $total_all = $result->groupBy('vehicles.id')->get();
         $result = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
 
-        //Filtros complete
-        $collection = collect($total_all);
-        $filteredMarcas = $collection;
+        
 
         $contadores = array(
             'marcas' => $contadorMarcas,
