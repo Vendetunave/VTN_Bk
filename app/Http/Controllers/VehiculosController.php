@@ -153,6 +153,10 @@ class VehiculosController extends Controller
         //Cateoria Filter
         
         if ($filtros['marca']) {
+            $total_modelos = Modelos::select('modelos.id', 'modelos.nombre')
+                ->join('marcas AS MA', 'MA.id', 'marca_id')
+                ->where('MA.nombre', $filtros['marca'])
+                ->get();
             $result->where('MA.nombre', $filtros['marca']);
         }
         if ($filtros['modelo']) {
@@ -216,11 +220,14 @@ class VehiculosController extends Controller
         $total_records = count($result->groupBy('vehicles.id')->get());
         $result = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
 
-        
+        if(isset($total_modelos)){
+            $collectionModelos = collect($total_modelos);
+            $filteredModelos = $collectionModelos;
+        }
 
         $contadores = array(
             'marcas' => $contadorMarcas,
-            'modelos' => $filteredMarcas->countBy('modelo'),
+            'modelos' => (isset($filteredModelos)) ? $filteredModelos->countBy('nombre') : [],
             'anios' => $filteredMarcas->countBy('ano'),
             'caja' => $filteredMarcas->countBy('transmision'),
             'combustible' => $filteredMarcas->countBy('combustible'),
@@ -399,6 +406,8 @@ class VehiculosController extends Controller
             ->where('data_sheet.active', 1);
 
         
+        $total_all = $result->groupBy('data_sheet.id')->get();
+
         if($filtros['q']){
             $result->where('data_sheet.title', 'LIKE', '%'.$filtros['q'].'%');
         }
@@ -407,10 +416,12 @@ class VehiculosController extends Controller
         }
 
         if($filtros['marca']){
+            $total_modelos = Modelos::select('modelos.id', 'modelos.nombre')
+                ->join('marcas AS MA', 'MA.id', 'marca_id')
+                ->where('MA.nombre', $filtros['marca'])
+                ->get();
             $result->where('MA.nombre', $filtros['marca']);
         }
-
-        $total_all = $result->groupBy('data_sheet.id')->get();
 
         if($filtros['modelo']){
             $result->where('M.nombre', $filtros['modelo']);
@@ -448,11 +459,16 @@ class VehiculosController extends Controller
         $collection = collect($total_all);
         $filteredMarcas = $collection;
 
+        if(isset($total_modelos)){
+            $collectionModelos = collect($total_modelos);
+            $filteredModelos = $collectionModelos;
+        }
+
         $contadores = array(
             'tipo' => $filteredMarcas->countBy('tipo'),
             'transmision' => $filteredMarcas->countBy('transmisionLabel'),
             'marca' => $filteredMarcas->countBy('marca'),
-            'modelo' => $filteredMarcas->countBy('modelo'),
+            'modelo' => (isset($filteredModelos)) ? $filteredModelos->countBy('nombre') : [],
             'combustible' => $filteredMarcas->countBy('combustibleLabel')
         );
         $response = [
