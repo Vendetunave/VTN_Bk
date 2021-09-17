@@ -38,14 +38,17 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('remove_favorito_ficha', 'UsuarioController@remove_favorito_ficha');
     $router->post('profile_update', 'UsuarioController@profile_update');
 
+    $router->post('crear_pregunta', 'ComunidadController@createQuestion');
+
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('home', 'HomeController@show');
     $router->get('config', 'HomeController@config');
+    $router->post('newsletter', 'HomeController@newsletter');
+
     $router->get('vehiculos', 'VehiculosController@find');
     $router->get('vehiculo/{slug}', 'VehiculosController@detalle');
-    $router->get('ciudades/{id}', 'OtrosController@get_cities');
     $router->get('modelos/{id}', 'VehiculosController@modelos');
     $router->get('marcas/{id}', 'VehiculosController@marcas');
 
@@ -60,8 +63,10 @@ $router->group(['prefix' => 'api'], function () use ($router){
     
     $router->get('servicios', 'OtrosController@getServicios');
     $router->get('concesionarios', 'OtrosController@concesionarios');
+    $router->post('financiacion', 'OtrosController@financiacion');
+    $router->get('ciudades/{id}', 'OtrosController@get_cities');
+
     $router->get('comunidad', 'ComunidadController@show');
     $router->get('pregunta/{slug}', 'ComunidadController@detalle');
-    $router->post('newsletter', 'HomeController@newsletter');
-    $router->post('financiacion', 'OtrosController@financiacion');
+    $router->get('tags', 'ComunidadController@allTags');
 });

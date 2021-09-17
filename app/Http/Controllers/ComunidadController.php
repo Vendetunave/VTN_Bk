@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\Users;
 use App\Models\Pregunta;
 use App\Models\Respuestas;
 use App\Models\Tags;
+use App\Models\preguntas_tags;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -127,5 +129,70 @@ class ComunidadController extends Controller
             'tags' => $tags
         ];
         return $result;
+    }
+
+    public function allTags()
+    {
+        $tags = Tags::all();
+
+        $result = [
+            'tags' => $tags,
+        ];
+
+        return $result;
+    }
+
+    public function createQuestion(Request $request)
+    {
+        try {
+            $preguntaInsert = Pregunta::insertGetId(['titulo' => $request->title, 'descripcion' => $request->description, 'user_id' => $request->user_id, 'fecha' => date('Y.m.d H:i:s')]);
+
+            if ($request->get('tags')) {
+                foreach ($request->tags as $item) {
+                    $tags = Tags::where('tag', $item)->first();
+                    if (!$tags) {
+                        $tagsInsert = Tags::insertGetId(['tag' => $item]);
+                    }
+
+                    $preguntaTag = preguntas_tags::insert(['pregunta_id' => $preguntaInsert, 'tag_id' => $tagsInsert]);
+                }
+            }
+
+            $result = [
+                'status' => true
+            ];
+
+            return $result;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+            ];
+
+            return $response;
+        }
+    }
+
+    public function createComent(Request $request)
+    {
+        try {
+            $user = Users::where('id', $request->user_id)->first();
+
+            if ($user->locked == 0) {
+                $respuesta = Respuestas::insert(['pregunta_id' => $request->idPregunta, 'respuesta' => $request->comentario, 'user_id' => $user->id, 'fecha' => date('Y-m-d H:i:s')]);
+            }
+
+            $result = [
+                'status' => $user->locked ? false: true,
+                'locked' => $user->locked
+            ];
+
+            return $result;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+            ];
+
+            return $response;
+        }
     }
 }
