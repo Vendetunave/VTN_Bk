@@ -8,17 +8,20 @@ use Intervention\Image\ImageManagerStatic as Image;
 
 use App\Models\Vehicles;
 use App\Models\imagenes;
-use App\Models\DataSheet;
 use App\Models\Marcas;
 use App\Models\Modelos;
-use App\Models\ImagesDataSheet;
-use App\Models\TipoVehiculos;
 use App\Models\Favoritos;
 use App\Models\Busquedas;
 use App\Models\Imagenes_vehiculo;
-use App\Models\imagenes_accesorios;
+use App\Models\TipoVehiculos;
+use App\Models\Colores;
+use App\Models\Combustibles;
+use App\Models\Transmisiones;
+use App\Models\TipoPrecio;
+use App\Models\ubicacion_departamentos;
+use App\Models\ubicacion_ciudades;
+use App\Models\TipoMoto;
 
-use App\Models\Accesorios;
 use DateTime;
 
 use Illuminate\Support\Facades\Auth;
@@ -356,304 +359,7 @@ class VehiculosController extends Controller
 
             return $response;
     }
-    public function fichas_tecnicas(Request $request){
-        $filtros = array(
-            'tipo' => $request->query('tipo') ? $request->query('tipo') : null,
-            'marca' => $request->query('marca') ? $request->query('marca') : null,
-            'modelo' => $request->query('modelo') ? $request->query('modelo') : null,
-            'combustible' => $request->query('combustible') ? $request->query('combustible') : null,
-            'transmision' => $request->query('transmision') ? $request->query('transmision') : null,
-            'precio' => $request->query('precio') ? $request->query('precio') : null,
-            'orden' => $request->query('orden') ? $request->query('orden') : null,
-            'page' => $request->query('page') ? $request->query('page') : 1,
-            'q' => $request->query('q') ? $request->query('q') : null
-        );
 
-        $result = DataSheet::select(
-            'data_sheet.id',
-            'data_sheet.title',
-            'data_sheet.description',
-            'data_sheet.price',
-            'data_sheet.year',
-            'data_sheet.torque',
-            'data_sheet.fuel_type',
-            'data_sheet.traction',
-            'data_sheet.trunk',
-            'data_sheet.autonomy',
-            'data_sheet.engine',
-            'data_sheet.power',
-            'data_sheet.performance',
-            'data_sheet.security',
-            'data_sheet.airbags',
-            'data_sheet.wheels',
-            'data_sheet.cushions',
-            'data_sheet.weight',
-            'C.nombre AS combustibleLabel',
-            'T.nombre AS transmisionLabel',
-            'I.name AS nameImage',
-            'I.ext AS extension',
-            'TP.nombre AS tipo',
-            'MA.nombre AS marca',
-            'M.nombre AS modelo',
-            \DB::raw('2 AS new_image')
-        )
-            ->join('images_data_sheet AS I', 'I.datasheet_id', \DB::raw('data_sheet.id AND I.order = 1'))
-            ->join('combustibles AS C', 'C.id', 'data_sheet.fuel_id')
-            ->join('transmisiones AS T', 'T.id', 'data_sheet.transmission_id')
-            ->join('tipo_vehiculos AS TP', 'TP.id', 'data_sheet.vehicle_type_id')
-            ->join('modelos AS M', 'M.id', 'data_sheet.model_id')
-            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
-            ->where('data_sheet.active', 1);
-
-        
-        $total_all = $result->groupBy('data_sheet.id')->get();
-
-        if($filtros['q']){
-            $result->where('data_sheet.title', 'LIKE', '%'.$filtros['q'].'%');
-        }
-        if($filtros['tipo']){
-            $result->where('data_sheet.type', $filtros['tipo']);
-        }
-
-        if($filtros['marca']){
-            $total_modelos = Modelos::select('modelos.id', 'modelos.nombre')
-                ->join('marcas AS MA', 'MA.id', 'marca_id')
-                ->where('MA.nombre', $filtros['marca'])
-                ->get();
-            $result->where('MA.nombre', $filtros['marca']);
-        }
-
-        if($filtros['modelo']){
-            $result->where('M.nombre', $filtros['modelo']);
-        }
-
-        if($filtros['transmision']){
-            $result->where('T.nombre', $filtros['transmision']);
-        }
-
-        if($filtros['combustible']){
-            $result->where('C.nombre', $filtros['combustible']);
-        }
-        
-
-        if ($filtros['precio']) {
-            $decodeParam = $filtros['precio'];
-            $arrayPrices = explode(":", $decodeParam);
-            $result->whereBetween('price', $arrayPrices);
-        }
-
-        switch ($filtros['orden']) {
-            case 3:
-                $result->orderBy('data_sheet.price', 'ASC');
-                break;
-            case 4:
-                $result->orderBy('data_sheet.price', 'DESC');
-                break;
-            default:
-                $result->orderBy('data_sheet.id', 'DESC');
-        }
-        $total_records = count($result->groupBy('data_sheet.id')->get());
-        $result = $result->groupBy('data_sheet.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
-
-        //Filtros complete
-        $collection = collect($total_all);
-        $filteredMarcas = $collection;
-
-        if(isset($total_modelos)){
-            $collectionModelos = collect($total_modelos);
-            $filteredModelos = $collectionModelos;
-        }
-
-        $contadores = array(
-            'tipo' => $filteredMarcas->countBy('tipo'),
-            'transmision' => $filteredMarcas->countBy('transmisionLabel'),
-            'marca' => $filteredMarcas->countBy('marca'),
-            'modelo' => (isset($filteredModelos)) ? $filteredModelos->countBy('nombre') : [],
-            'combustible' => $filteredMarcas->countBy('combustibleLabel')
-        );
-        $response = [
-            'page' => $filtros['page'],
-            'total_records' => $total_records,
-            'vehicles' => $result,
-            'filtros' => $filtros,
-            'contadores' => $contadores
-        ];
-
-        return $response;
-    }
-    public function accesorios(Request $request){
-        $filtros = array(
-            'categoria' => $request->query('categoria') ? $request->query('categoria') : null,
-            'ubicacion' => $request->query('ubicacion') ? $request->query('ubicacion') : null,
-            'marca' => $request->query('marca') ? $request->query('marca') : null,
-            'motor' => $request->query('motor') ? $request->query('motor') : null,
-            'modelo' => $request->query('modelo') ? $request->query('modelo') : null,
-            'estado' => $request->query('estado') ? $request->query('estado') : null,
-            'transmision' => $request->query('transmision') ? $request->query('transmision') : null,
-            'kilometraje' => $request->query('kilometraje') ? $request->query('kilometraje') : null,
-            'precio' => $request->query('precio') ? $request->query('precio') : null,
-            'orden' => $request->query('orden') ? $request->query('orden') : null,
-            'page' => $request->query('page') ? $request->query('page') : 1
-        );
-        $result = Accesorios::select('accesorios.*', 'TP.nombre AS tipoAcc', 'I.nombre AS nameImage', 'I.extension', 'UC.nombre as ciudad')
-            ->join('tipo_accesorio AS TP', 'TP.id', 'accesorios.tipo_accesorio')
-            ->join('ubicacion_ciudades AS UC', 'UC.id', 'accesorios.ciudad_id')
-            ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
-            ->join('imagenes_accesorios AS IA', 'IA.accesorio_id', 'accesorios.id')
-            ->join('imagenes AS I', 'I.id', 'IA.image_id')
-            ->where('activo', 1);
-        
-        switch ($filtros['orden']) {
-            case 1:
-                $result->orderBy('accesorios.condicion', 'ASC');
-                break;
-            case 2:
-                $result->orderBy('accesorios.condicion', 'DESC');
-                break;
-            case 3:
-                $result->orderBy('accesorios.precio', 'ASC');
-                break;
-            case 4:
-                $result->orderBy('accesorios.precio', 'DESC');
-                break;
-            default:
-                $result->orderBy('accesorios.id', 'DESC');
-        }
-        $total_records = count($result->groupBy('accesorios.id')->get());
-        $total_all = $result->groupBy('accesorios.id')->get();
-        $result = $result->groupBy('accesorios.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
-
-        //Filtros complete
-        $collection = collect($total_all);
-        $filteredMarcas = $collection;
-
-        $contadores = array(
-            'tipo' => $filteredMarcas->countBy('tipoAcc'),
-            'ciudad' => $filteredMarcas->countBy('ciudad'),
-            'estado' => $filteredMarcas->countBy('condicion')
-        );
-        $response = [
-            'page' => $filtros['page'],
-            'total_records' => $total_records,
-            'vehicles' => $result,
-            'filtros' => $filtros,
-            'contadores' => $contadores
-        ];
-
-        return $response;
-    }
-    public function accesorio($slug){
-        $arrayUrl = explode('-', $slug);
-        $id = $arrayUrl[COUNT($arrayUrl) - 1];
-        try {
-            $accesorio = Accesorios::select(
-                'accesorios.*',
-                'TA.nombre AS tipoLabel',
-                'UC.nombre AS ciudadLabel',
-                'UD.nombre AS departamentoLabel',
-                'TP.nombre AS tipoPrecioLabel',
-                'U.telefono'
-            )
-                ->leftJoin('users AS U', 'U.id', 'accesorios.vendedor_id')
-                ->leftJoin('tipo_accesorio AS TA', 'TA.id', 'accesorios.tipo_accesorio')
-                ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'accesorios.ciudad_id')
-                ->leftJoin('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
-                ->leftJoin('tipo_precio AS TP', 'TP.id', 'accesorios.tipo_precio')
-                ->where('accesorios.id', $id)
-                ->first();
-            $date1 = new DateTime($accesorio->fecha_creacion);
-            $date2 = new DateTime();
-            $diff = $date1->diff($date2);
-            $diasPublicado = $diff->days;
-
-            $imagenes = imagenes::select(
-                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".") AS url, imagenes.id AS imageId'),
-                    'imagenes.extension',
-                    'imagenes.new_image'
-                )
-                ->leftJoin('imagenes_accesorios AS IV', 'IV.image_id', 'imagenes.id')
-                ->where('IV.accesorio_id', $id)
-                ->get();
-
-            $response = [
-                'status' => true,
-                'vehiculo' => $accesorio,
-                'id' => $id,
-                'imagenes' => $imagenes,
-                'diasPublicado' => $diasPublicado,
-                'vehiculosRelacionados' => [],
-                'vehicleFav' => [],
-                'vehicleFavRelacionados' => [],
-            ];
-            return $response;
-        } catch (\Throwable $th) {
-            $response = [
-                'status' => false,
-            ];
-            return $response;
-        }
-    }
-    public function ficha_tecnica($slug){
-        $arrayUrl = explode('-', $slug);
-        $id = $arrayUrl[COUNT($arrayUrl) - 1];
-
-        $vehiculo = DataSheet::select(
-            'data_sheet.*',
-            'C.nombre AS combustibleLabel',
-            'T.nombre AS transmisionLabel',
-            'M.nombre AS modeloLabel',
-            'MA.nombre AS marcaLabel',
-            'TV.nombre AS tipoLabel',
-            'I.name AS nameImage',
-            'I.ext AS extension',
-            \DB::raw('2 AS new_image')
-        )
-            ->join('images_data_sheet AS I', 'I.datasheet_id', \DB::raw('data_sheet.id AND I.order = 1'))
-            ->join('tipo_vehiculos AS TV', 'TV.id', 'data_sheet.vehicle_type_id')
-            ->join('combustibles AS C', 'C.id', 'data_sheet.fuel_id')
-            ->join('transmisiones AS T', 'T.id', 'data_sheet.transmission_id')
-            ->join('modelos AS M', 'M.id', 'data_sheet.model_id')
-            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
-            ->where('data_sheet.id', $id)
-            ->first();
-
-        \DB::table('data_sheet')->where('id', $id)->update([
-            'views' => $vehiculo->views + 1,
-        ]);
-
-        $imagenes = ImagesDataSheet::select(
-            \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", path, name, ".") AS url'),
-            'ext AS extension',
-            \DB::raw('2 AS new_image')
-        )
-            ->where('datasheet_id', $id)
-            ->orderBy('order', 'ASC')
-            ->get();
-
-        $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
-            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
-            ->join('imagenes AS I', 'I.id', 'IV.id_image')
-            ->where('activo', 1)
-            ->where('vehicles.modelo_id', $vehiculo->model_id)
-            ->groupBy('vehicles.id')
-            ->limit(10)
-            ->get();
-
-        $vehiculosRelacionadosCount = Vehicles::where('activo', 1)
-            ->where('vehicles.modelo_id', $vehiculo->model_id)
-            ->count();
-
-        $response = [
-            'vehicle' => $vehiculo,
-            'views' => $vehiculo->views + 1,
-            'imagenes' => $imagenes,
-            'vehiculosRelacionados' => $vehiculosRelacionados,
-            'vehiculosRelacionadosCount' => $vehiculosRelacionadosCount
-        ];
-
-        return $response;
-
-    }
     public function modelos($id){
         $modelos = Modelos::select('*')->where('marca_id', $id)->get();
         $result = [
@@ -797,64 +503,227 @@ class VehiculosController extends Controller
 
     }
 
-    public function insert_accessory(Request $request)
+    public function edit_vehicle(Request $request)
     {
         try {
-            $precio = str_replace('.', '', $request->precio);
+            $vehiculo = Vehicles::select(
+                'vehicles.*',
+                'C.nombre AS combustibleLabel',
+                'CO.nombre AS colorLabel',
+                'T.nombre AS transmisionLabel',
+                'M.nombre AS modeloLabel',
+                'MA.nombre AS marcaLabel',
+                'MA.id AS marcaId',
+                'TV.nombre AS tipoLabel',
+                'UC.nombre AS ciudadLabel',
+                'UD.nombre AS departamentoLabel',
+                'UD.id AS departamento',
+                'TP.nombre AS tipoPrecioLabel'
+            )
+                ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
+                ->join('combustibles AS C', 'C.id', 'vehicles.combustible')
+                ->join('colores AS CO', 'CO.id', 'vehicles.color')
+                ->join('transmisiones AS T', 'T.id', 'vehicles.transmision')
+                ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+                ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+                ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+                ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
+                ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
+                ->where('vehicles.id', $request->id)
+                ->first();
 
-            $accesorios = Accesorios::insertGetId([
-                'title' => $request->titulo,
-                'descripcion' => $request->descripcion,
-                'precio' => (int) $precio,
-                'tipo_precio' => $request->tipo_precio,
-                'ciudad_id' => $request->ciudad,
-                'condicion' => $request->estado,
-                'vendedor_id' => $request->user_id,
-                'activo' => 0,
-                'tipo_accesorio' => $request->categoria,
-                'fecha_creacion' => new DateTime(),
-            ]);
+            if($vehiculo->vendedor_id !== $request->user_id){
+                $response = [
+                    'status' => true,
+                    'intruder' => true,
+                    'msj' => 'No deberías estas aquí :)'
+                ];
 
-
-            $images = $request->images;
-            foreach ($images as $keyImage => $itemImage) {
-                $image = $itemImage;
-                $image = str_replace('data:image/jpeg;base64,', '', $image);
-                $image = str_replace(' ', '+', $image);
-                $name = uniqid();
-                $imageName = $name . '.' . 'jpeg';
-
-                Storage::disk('s3')->put('vendetunave/images/accesorios/' . $imageName, base64_decode($image), 'public');
-                $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
-                Storage::disk('s3')->put('vendetunave/images/accesorios/' . $name . '.' . 'webp', $imageConvert, 'public');
-
-                $imagenId = imagenes::insertGetId([
-                    'nombre' => $name,
-                    'path' => 'vendetunave/images/accesorios/',
-                    'extension' => 'jpeg',
-                    'order' => ($keyImage + 1),
-                    'new_image' => 1
-                ]);
-
-                $imageAcce = imagenes_accesorios::insert([
-                    'accesorio_id' => $accesorios,
-                    'image_id' => $imagenId
-                ]);
+                return $response;
             }
 
-            $response = [
-                'accessory' => $accesorios,
+            $categories = TipoVehiculos::all();
+            $combustibles = Combustibles::all();
+            $colores = Colores::all();
+            $transmisiones = Transmisiones::all();
+            $tipoPrecio = TipoPrecio::all();
+            $departamentos = ubicacion_departamentos::select('*')->orderBy('nombre')->get();
+            $ciudades = ubicacion_ciudades::select('*')->where('id_departamento', $vehiculo->departamento)->orderBy('nombre')->get();
+            $marcas = Marcas::where('categoria_id', $vehiculo->tipo_vehiculo)
+                ->get();
+            $modelos = Modelos::where('marca_id', $vehiculo->marcaId)->get();
+
+            $imagenes = imagenes::select(
+                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".", imagenes.extension) AS url, imagenes.id AS imageId'),
+                'order'
+            )
+                ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
+                ->where('IV.id_vehicle', $request->id)
+                ->orderBy('imagenes.order', 'ASC')
+                ->get();
+
+            $imagesArray = [];
+
+            for ($i = 0; $i < 10; $i++) {
+                $encontrado = false;
+                foreach ($imagenes as $item) {
+                    if (($i + 1) === $item->order) {
+                        array_push($imagesArray, (object) array('url' => $item->url, 'imageId' => $item->imageId, 'order' => $item->order));
+                        $encontrado = true;
+                        break;
+                    }
+                }
+
+                if (!$encontrado) {
+                    array_push($imagesArray, (object) array('url' => '', 'imageId' => '', 'order' => ($i + 1)));
+                }
+            }
+
+            $tipoMoto = TipoMoto::all();
+
+            $result = [
                 'status' => true,
+                'intruder' => false,
+                'categories' => $categories,
+                'combustibles' => $combustibles,
+                'colores' => $colores,
+                'transmisiones' => $transmisiones,
+                'tipoPrecio' => $tipoPrecio,
+                'departamentos' => $departamentos,
+                'ciudades' => $ciudades,
+                'marcas' => $marcas,
+                'tipoMoto' => $tipoMoto,
+                'modelos' => $modelos,
+                'vehiculo' => $vehiculo,
+                'imagenes' => $imagesArray,
             ];
 
-            return $response;
+            return $result;
         } catch (\Throwable $th) {
             $response = [
-                'error' => $th,
                 'status' => false,
             ];
 
             return $response;
         }
     }
+
+    public function update_vehicle(Request $request)
+    {
+        try {
+            $validVehicle = \DB::table('vehicles')->select('vendedor_id', 'precio')->where('id', $request->id)->first();
+            if($validVehicle->vendedor_id !== $request->user_id){
+                $response = [
+                    'status' => true,
+                    'intruder' => true,
+                    'msj' => 'No deberías estas aquí :)'
+                ];
+
+                return $response;
+            }
+
+            $precioVehiculo = str_replace('.', '', $request->precio_vehiculo);
+            $kmVehiculo = str_replace('.', '', $request->kilometraje_vehiculo);
+            $cilindrajeVehiculo = str_replace('.', '', $request->cilindraje_vehiculo);
+
+            $republicar = 0;
+
+            if($validVehicle->precio !== (int) $precioVehiculo){
+                $republicar = 1;
+            }
+
+            $vehiculos = \DB::table('vehicles')->where('id', $request->id)->update([
+                'title' => $request->titulo_vehiculo,
+                'descripcion' => $request->descripcion_vehiculo,
+                'condicion' => $request->estado_vehiculo,
+                'precio' => (int) $precioVehiculo,
+                'tipo_precio' => $request->tipo_precio_vehiculo,
+                'promocion' => $request->promocion,
+                'permuta' => $request->permuta,
+                'kilometraje' => (int) $kmVehiculo,
+                'combustible' => $request->combustible_vehiculo,
+                'color' => $request->color_vehiculo,
+                'transmision' => $request->transmision_vehiculo,
+                'blindado' => $request->blindado_vehiculo,
+                'placa' => $request->placa_vehiculo,
+                'ciudad_id' => $request->ciudad_vehiculo,
+                'activo' => 0,
+                'aprobado_promocion' => 0,
+                'tipo_vehiculo' => $request->tipo_vehiculo,
+                'modelo_id' => $request->modelo_vehiculo,
+                'ano' => $request->anio_vehiculo,
+                'vendido' => 0,
+                'contacto' => $request->contacto_vehiculo,
+                'cilindraje' => (int) $cilindrajeVehiculo,
+                'financiacion' => $request->financiacion,
+                'tipo_moto' => $request->tipo_moto_select,
+                'republicar' => $republicar
+            ]);
+
+            $images = $request->image;
+            foreach ($images as $itemImage) {
+                $image = $itemImage["uri"];
+                $image = str_replace('data:image/jpeg;base64,', '', $image);
+                $image = str_replace(' ', '+', $image);
+                $name = uniqid();
+                $imageName = $name . '.' . 'jpeg';
+
+
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $imageName, base64_decode($image), 'public');
+
+                $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                if ($itemImage["order"] == 1) {
+                    $imageThumb = Image::make(base64_decode($image));
+                    $w = $imageThumb->width();
+                    $h = $imageThumb->height();
+                    if ($w > $h) {
+                        $imageThumb->resize(300, null, function ($constraint) {
+                            $constraint->aspectRatio();
+                        });
+                    } else {
+                        $imageThumb->resize(null, 300, function ($constraint) {
+                            $constraint->aspectRatio();
+                        });
+                    }
+
+                    $imageThumbJpeg = $imageThumb;
+                    $imageThumb->encode('webp', 100);
+                    $imageThumbJpeg->encode('jpeg', 100);
+
+                    Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+                    Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.jpeg', $imageThumbJpeg, 'public');
+                }
+
+                $imagenId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'jpeg',
+                    'order' => $itemImage["order"],
+                    'id_vehicle' => $request->id,
+                    'new_image' => ($itemImage["order"] == 1) ? 2 : 1
+                ]);
+
+                $imagevehiculo = Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imagenId
+                ]);
+            }
+
+            $response = [
+                'status' => true,
+                'intruder' => false,
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+            ];
+
+            return $response;
+        }
+    }
+
 }
