@@ -23,7 +23,12 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('register', 'AuthController@register');
 
     $router->post('vehicle_insert', 'VehiculosController@insert');
-    $router->post('accessory_insert', 'VehiculosController@insert_accessory');
+    $router->post('vehicle_edit', 'VehiculosController@edit_vehicle');
+    $router->post('vehicle_update', 'VehiculosController@update_vehicle');
+
+    $router->post('accessory_insert', 'AccesoriosController@insert_accessory');
+    $router->post('accessory_edit', 'AccesoriosController@edit_accessory');
+    $router->post('accessory_update', 'AccesoriosController@update_accessory');
 
     $router->get('profile/{id}', 'UsuarioController@profile');
     $router->get('publicaciones/{id}', 'UsuarioController@publicaciones');
@@ -52,11 +57,11 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('modelos/{id}', 'VehiculosController@modelos');
     $router->get('marcas/{id}', 'VehiculosController@marcas');
 
-    $router->get('fichas_tecnicas', 'VehiculosController@fichas_tecnicas');
-    $router->get('ficha_tecnica/{slug}', 'VehiculosController@ficha_tecnica');
+    $router->get('fichas_tecnicas', 'FichaTecnicaController@fichas_tecnicas');
+    $router->get('ficha_tecnica/{slug}', 'FichaTecnicaController@ficha_tecnica');
     
-    $router->get('accesorios', 'VehiculosController@accesorios');
-    $router->get('accesorio/{slug}', 'VehiculosController@accesorio');
+    $router->get('accesorios', 'VehiculosController@AccesoriosController');
+    $router->get('accesorio/{slug}', 'VehiculosController@AccesoriosController');
 
     $router->post('comparar_vehiculo_pdf', 'ComparadorController@generate_vehiculo');
     $router->post('comparar_ficha_pdf', 'ComparadorController@generate_ficha');

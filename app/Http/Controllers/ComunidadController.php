@@ -153,8 +153,7 @@ class ComunidadController extends Controller
                     if (!$tags) {
                         $tagsInsert = Tags::insertGetId(['tag' => $item]);
                     }
-
-                    $preguntaTag = preguntas_tags::insert(['pregunta_id' => $preguntaInsert, 'tag_id' => $tagsInsert]);
+                    preguntas_tags::insert(['pregunta_id' => $preguntaInsert, 'tag_id' => (!$tags)? $tagsInsert: $tags->id]);
                 }
             }
 
