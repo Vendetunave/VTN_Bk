@@ -80,6 +80,7 @@ class VehiculosController extends Controller
         $filtros = array(
             'categoria' => $request->query('categoria') ? $request->query('categoria') : null,
             'ubicacion' => $request->query('ubicacion') ? $request->query('ubicacion') : null,
+            'ciudad' => $request->query('ciudad') ? $request->query('ciudad') : null,
             'marca' => $request->query('marca') ? $request->query('marca') : null,
             'motor' => $request->query('motor') ? $request->query('motor') : null,
             'tipo' => $request->query('tipo') ? $request->query('tipo') : null,
@@ -98,7 +99,7 @@ class VehiculosController extends Controller
             'q' => $request->query('q') ? $request->query('q') : null
         );
         $selectArray = array(
-            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.precio','vehicles.condicion', 'vehicles.cilindraje',
+            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio','vehicles.condicion', 'vehicles.cilindraje',
             'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'UC.nombre AS labelCiudad',
             'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca', 
             'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TP.nombre AS tipoPrecioLabel'
@@ -111,6 +112,7 @@ class VehiculosController extends Controller
             )
             ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
             ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+            ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
             ->join('marcas AS MA', 'MA.id', 'M.marca_id')
             ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
@@ -145,7 +147,10 @@ class VehiculosController extends Controller
             $result->where('vehicles.title', 'LIKE', '%'.$filtros['q'].'%');
         }
         if( $filtros['ubicacion'] ){
-            $result->where('UC.nombre', $filtros['ubicacion']);
+            $result->where('UD.nombre', $filtros['ubicacion']);
+        }
+        if( $filtros['ciudad'] ){
+            $result->where('UC.nombre', $filtros['ciudad']);
         }
         if( $filtros['motor'] ){
             $result->where('MO.nombre', $filtros['motor']);
@@ -228,6 +233,18 @@ class VehiculosController extends Controller
             $filteredModelos = $collectionModelos;
         }
 
+        $total_departamentos = ubicacion_departamentos::orderBy('nombre')->get();
+        $filterredDepartamentos = collect($total_departamentos);
+
+        if($filtros['ubicacion']){
+            $total_ciudades = ubicacion_ciudades::select('ubicacion_ciudades.id', 'ubicacion_ciudades.nombre')
+            ->join('ubicacion_departamentos AS UD', 'UD.id', 'ubicacion_ciudades.id_departamento')
+            ->where('UD.nombre', $filtros['ubicacion'])
+            ->orderBy('ubicacion_ciudades.nombre')
+            ->get();
+            $filterredCiudades = collect($total_ciudades);
+        }
+
         $contadores = array(
             'marcas' => $contadorMarcas,
             'modelos' => (isset($filteredModelos)) ? $filteredModelos->countBy('nombre') : [],
@@ -235,7 +252,8 @@ class VehiculosController extends Controller
             'caja' => $filteredMarcas->countBy('transmision'),
             'combustible' => $filteredMarcas->countBy('combustible'),
             'tipo' => array(),
-            'ubicacion' => $filteredMarcas->countBy('labelCiudad')
+            'ubicacion' => $filterredDepartamentos->countBy('nombre'),
+            'ciudad' => (isset($filterredCiudades)) ? $filterredCiudades->countBy('nombre') : []
         );
         if($filtros['categoria'] === 'motos'){
             $contadores['tipo'] = $filteredMarcas->countBy('tipoMotoLabel');
