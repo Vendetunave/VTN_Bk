@@ -17,7 +17,7 @@
         <li>Cuota inicial: {{ $cuota_inicial }}</li>
         <li>Número de cuotas: {{ $cuotas }}</li>
         <li>Reportado en Datacr&eacute;dito: {{ ($datacredito == 0)? 'NO': 'SI' }}</li>
-        <li>Rango salar&iacute;al: {{ (($salario == 1)? '1.600.000 - 2.500.000': ($salario == 2)? '2.500.000 - 5.000.000': '5.000.000 en adelante') }}</li>
+        <li>Rango salar&iacute;al: {{ ((($salario == 1)? '1.600.000 - 2.500.000': ($salario == 2))? '2.500.000 - 5.000.000': '5.000.000 en adelante') }}</li>
     </ul>
 </body>
 </html>
