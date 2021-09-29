@@ -678,56 +678,58 @@ class VehiculosController extends Controller
                 'republicar' => $republicar
             ]);
 
-            // $images = $request->image;
-            // foreach ($images as $itemImage) {
-            //     $image = $itemImage["uri"];
-            //     $image = str_replace('data:image/jpeg;base64,', '', $image);
-            //     $image = str_replace(' ', '+', $image);
-            //     $name = uniqid();
-            //     $imageName = $name . '.' . 'jpeg';
+            if($request->get('image', false)) {
+                $images = $request->image;
+                foreach ($images as $itemImage) {
+                    $image = $itemImage["uri"];
+                    $image = str_replace('data:image/jpeg;base64,', '', $image);
+                    $image = str_replace(' ', '+', $image);
+                    $name = uniqid();
+                    $imageName = $name . '.' . 'jpeg';
 
 
-            //     Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $imageName, base64_decode($image), 'public');
+                    Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $imageName, base64_decode($image), 'public');
 
-            //     $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
-            //     Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+                    $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
+                    Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
 
-            //     if ($itemImage["order"] == 1) {
-            //         $imageThumb = Image::make(base64_decode($image));
-            //         $w = $imageThumb->width();
-            //         $h = $imageThumb->height();
-            //         if ($w > $h) {
-            //             $imageThumb->resize(300, null, function ($constraint) {
-            //                 $constraint->aspectRatio();
-            //             });
-            //         } else {
-            //             $imageThumb->resize(null, 300, function ($constraint) {
-            //                 $constraint->aspectRatio();
-            //             });
-            //         }
+                    if ($itemImage["order"] == 1) {
+                        $imageThumb = Image::make(base64_decode($image));
+                        $w = $imageThumb->width();
+                        $h = $imageThumb->height();
+                        if ($w > $h) {
+                            $imageThumb->resize(300, null, function ($constraint) {
+                                $constraint->aspectRatio();
+                            });
+                        } else {
+                            $imageThumb->resize(null, 300, function ($constraint) {
+                                $constraint->aspectRatio();
+                            });
+                        }
 
-            //         $imageThumbJpeg = $imageThumb;
-            //         $imageThumb->encode('webp', 100);
-            //         $imageThumbJpeg->encode('jpeg', 100);
+                        $imageThumbJpeg = $imageThumb;
+                        $imageThumb->encode('webp', 100);
+                        $imageThumbJpeg->encode('jpeg', 100);
 
-            //         Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
-            //         Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.jpeg', $imageThumbJpeg, 'public');
-            //     }
+                        Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+                        Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.jpeg', $imageThumbJpeg, 'public');
+                    }
 
-            //     $imagenId = imagenes::insertGetId([
-            //         'nombre' => $name,
-            //         'path' => 'vendetunave/images/vehiculos/',
-            //         'extension' => 'jpeg',
-            //         'order' => $itemImage["order"],
-            //         'id_vehicle' => $request->id,
-            //         'new_image' => ($itemImage["order"] == 1) ? 2 : 1
-            //     ]);
+                    $imagenId = imagenes::insertGetId([
+                        'nombre' => $name,
+                        'path' => 'vendetunave/images/vehiculos/',
+                        'extension' => 'jpeg',
+                        'order' => $itemImage["order"],
+                        'id_vehicle' => $request->id,
+                        'new_image' => ($itemImage["order"] == 1) ? 2 : 1
+                    ]);
 
-            //     $imagevehiculo = Imagenes_vehiculo::insert([
-            //         'id_vehicle' => $request->id,
-            //         'id_image' => $imagenId
-            //     ]);
-            // }
+                    $imagevehiculo = Imagenes_vehiculo::insert([
+                        'id_vehicle' => $request->id,
+                        'id_image' => $imagenId
+                    ]);
+                }
+            }
 
             $response = [
                 'status' => true,
