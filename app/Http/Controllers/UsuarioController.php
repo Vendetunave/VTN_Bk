@@ -18,7 +18,6 @@ use App\Models\Colores;
 use App\Models\Transmisiones;
 use App\Models\TipoPrecio;
 use App\Models\TipoMoto;
-use App\Models\ubicacion_ciudades;
 use App\Models\ubicacion_departamentos;
 use App\Models\tipo_accesorio;
 

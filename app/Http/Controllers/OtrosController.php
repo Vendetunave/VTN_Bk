@@ -4,16 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\Users;
 use App\Models\Servicios;
 use App\Models\Dealerships;
-use App\Models\TiposServicios;
 use App\Models\ubicacion_ciudades;
 use App\Models\Marcas;
+use App\Models\tokens;
 
 use Illuminate\Support\Facades\Mail;
 use App\Models\Config;
 use App\Models\financiacion;
-
+use Illuminate\Support\Facades\Hash;
 
 class OtrosController extends Controller
 {
@@ -25,19 +26,19 @@ class OtrosController extends Controller
     public function getServicios(Request $request)
     {
         $page = $request->query('page') ? $request->query('page') : 1;
-        
+
         $servicio = $request->query('servicio') ? $request->query('servicio') : null;
         $ciudad = $request->query('ciudad') ? $request->query('ciudad') : null;
 
         $servicios = Servicios::select('servicios.*', 'TS.nombre AS servicio', 'UC.nombre AS labelCiudad')
-        ->leftJoin('tipos_servicio AS TS', 'TS.id', 'servicios.tipo_servicio_id')
-        ->join('ubicacion_ciudades AS UC', 'UC.id', 'servicios.ciudad_id');
+            ->leftJoin('tipos_servicio AS TS', 'TS.id', 'servicios.tipo_servicio_id')
+            ->join('ubicacion_ciudades AS UC', 'UC.id', 'servicios.ciudad_id');
         $total_all = $servicios->get();
-        if($servicio){
+        if ($servicio) {
             $servicios->where('TS.nombre', $servicio);
         }
 
-        if($ciudad){
+        if ($ciudad) {
             $servicios->where('UC.nombre', $ciudad);
         }
 
@@ -61,7 +62,8 @@ class OtrosController extends Controller
 
         return $result;
     }
-    public function get_id_tipo($titulo){
+    public function get_id_tipo($titulo)
+    {
         switch ($titulo) {
             case 'NUEVO':
                 return 1;
@@ -69,7 +71,8 @@ class OtrosController extends Controller
                 return 2;
         }
     }
-    public function get_id_marca($titulo){
+    public function get_id_marca($titulo)
+    {
         $marca = Marcas::where('nombre', $titulo)->first();
         return $marca->id;
     }
@@ -83,7 +86,7 @@ class OtrosController extends Controller
         );
         $servicios = Dealerships::select('dealerships.*', 'CD.nombre AS ciudadLabel')
             ->join('ubicacion_ciudades AS CD', 'CD.id', 'dealerships.city_id');
-        
+
         if ($filtros['ciudad']) {
             $servicios->where('CD.nombre', $filtros['ciudad']);
         }
@@ -108,37 +111,38 @@ class OtrosController extends Controller
 
         return $result;
     }
-    public function financiacion(Request $request){
+    public function financiacion(Request $request)
+    {
         try {
-            $finacicacion = financiacion::insert([ 
-                'nombre' => $request->nombre, 
-                'apellido' => $request->apellido, 
-                'fecha_nacimiento' => $request->fecha_nacimiento, 
-                'cuanto_cuesta' => str_replace('.', '', $request->cuanto_cuesta), 
-                'cuota_inicial' => str_replace('.', '', $request->cuota_inicial), 
-                'numero_cuotas' => $request->cuotas, 
-                'datacredito' => $request->datacredito, 
-                'rango_salarial' => $request->salario, 
-                'whatsapp' => $request->whatsapp, 
-                'email' => $request->email, 
+            $finacicacion = financiacion::insert([
+                'nombre' => $request->nombre,
+                'apellido' => $request->apellido,
+                'fecha_nacimiento' => $request->fecha_nacimiento,
+                'cuanto_cuesta' => str_replace('.', '', $request->cuanto_cuesta),
+                'cuota_inicial' => str_replace('.', '', $request->cuota_inicial),
+                'numero_cuotas' => $request->cuotas,
+                'datacredito' => $request->datacredito,
+                'rango_salarial' => $request->salario,
+                'whatsapp' => $request->whatsapp,
+                'email' => $request->email,
                 'creado' => date('Y-m-d H:i:s')
             ]);
-    
+
             $config = Config::select('correo_financiacion')->first();
-    
+
             $subject = "Alguien está interesado en el servicio de financiación";
             $for = $config->correo_financiacion;
-    
+
             Mail::send('mailFinanciacion', $request->all(), function ($msj) use ($subject, $for) {
                 $msj->from("no-reply@vendetunave.co", "VendeTuNave");
                 $msj->subject($subject);
                 $msj->to($for);
             });
-    
+
             $result = [
                 'status' => true
             ];
-    
+
             return $result;
         } catch (\Throwable $th) {
             $result = [
@@ -147,7 +151,6 @@ class OtrosController extends Controller
 
             return $result;
         }
-        
     }
 
     public function get_cities($id)
@@ -159,5 +162,71 @@ class OtrosController extends Controller
         ];
 
         return $result;
+    }
+
+    public function restablecer_contrasena_link(Request $request)
+    {
+        $user = Users::where('email', $request->email)->first();
+
+        if ($user) {
+
+            $linkEncrypt = md5(rand(1, 1000) . date('Y-m-d H:i:s'));
+
+            $token = tokens::insert([
+                'token' => $linkEncrypt,
+                'user_id' => $user->id,
+                'fecha' => date('Y-m-d H:i:s'),
+            ]);
+
+            $subject = "Restablecimiento de su contraseña";
+            $for = $user->email;
+            Mail::send('mailPassword', ['user' => $user, 'token' => $linkEncrypt], function ($msj) use ($subject, $for) {
+                $msj->from("no-reply@vendetunave.co", "VendeTuNave");
+                $msj->subject($subject);
+                $msj->to($for);
+            });
+            return ['status' => true];
+        } else {
+            return ['status' => false];
+        }
+    }
+
+    public function validar_token(Request $request)
+    {
+        $tokenValid = tokens::where('token', $request->token)->first();
+
+        if ($tokenValid) {
+            if ($tokenValid->valido == 1) {
+                return ['status' => true];
+            } else {
+                return ['status' => false];
+            }
+        } else {
+            return ['status' => false];
+        }
+    }
+
+    public function restablecer_contrasena(Request $request)
+    {
+        try {
+            $token = tokens::where('token', $request->token)->first();
+
+            \DB::table('users')->where('id', $token->user_id)
+                ->update(['password' => Hash::make($request->pass), 'password_encrypt' => false]);
+
+            \DB::table('tokens')->where('id', $token->id)->delete();
+
+            $response = [
+                'state' => true
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'state' => false
+            ];
+
+            return $response;
+        }
     }
 }

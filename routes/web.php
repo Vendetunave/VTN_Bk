@@ -74,4 +74,8 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('comunidad', 'ComunidadController@show');
     $router->get('pregunta/{slug}', 'ComunidadController@detalle');
     $router->get('tags', 'ComunidadController@allTags');
+
+    $router->post('generar-restablecer-contrasena', 'OtrosController@restablecer_contrasena_link');
+    $router->post('restablecer-contrasena', 'OtrosController@restablecer_contrasena');
+    $router->get('validar-token/{token}', 'OtrosController@validar_token');
 });
