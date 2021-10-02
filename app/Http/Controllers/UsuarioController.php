@@ -123,35 +123,34 @@ class UsuarioController extends Controller
             ->leftJoin('imagenes AS I', 'I.id', 'IV.id_image')
             ->leftJoin('modelos AS M', 'M.id', 'vehicles.modelo_id')
             ->where('vehicles.vendedor_id', $id)
-            ->where('vehicles.vendido', 0)
             ->orderBy('vehicles.fecha_creacion', 'DESC')
             ->groupBy('vehicles.id')
             ->get();
 
-        $accesorios = Accesorios::select(
-            'accesorios.id',
-            'accesorios.title',
-            'accesorios.precio',
-            'accesorios.fecha_creacion',
-            'accesorios.activo',
-            'accesorios.vendido',
-            'UC.nombre AS labelCiudad',
-            'I.nombre AS nameImage',
-            'I.extension'
-        )
-            ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'accesorios.ciudad_id')
-            ->leftJoin('imagenes_accesorios AS IV', 'IV.accesorio_id', 'accesorios.id')
-            ->leftJoin('imagenes AS I', 'I.id', 'IV.image_id')
-            ->where('vendedor_id', $id)
-            ->where('accesorios.vendido', 0)
-            ->orderBy('accesorios.fecha_creacion', 'DESC')
-            ->orderBy('accesorios.id', 'DESC')
-            ->groupBy('accesorios.id')
-            ->get();
+        // $accesorios = Accesorios::select(
+        //     'accesorios.id',
+        //     'accesorios.title',
+        //     'accesorios.precio',
+        //     'accesorios.fecha_creacion',
+        //     'accesorios.activo',
+        //     'accesorios.vendido',
+        //     'UC.nombre AS labelCiudad',
+        //     'I.nombre AS nameImage',
+        //     'I.extension'
+        // )
+        //     ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'accesorios.ciudad_id')
+        //     ->leftJoin('imagenes_accesorios AS IV', 'IV.accesorio_id', 'accesorios.id')
+        //     ->leftJoin('imagenes AS I', 'I.id', 'IV.image_id')
+        //     ->where('vendedor_id', $id)
+        //     ->where('accesorios.vendido', 0)
+        //     ->orderBy('accesorios.fecha_creacion', 'DESC')
+        //     ->orderBy('accesorios.id', 'DESC')
+        //     ->groupBy('accesorios.id')
+        //     ->get();
 
         $result = [
             'vehiculos' => $vehicles,
-            'accesorios' => $accesorios
+            // 'accesorios' => $accesorios
         ];
         return $result;
     }
