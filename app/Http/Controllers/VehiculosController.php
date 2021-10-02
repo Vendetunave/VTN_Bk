@@ -33,7 +33,8 @@ class VehiculosController extends Controller
      *
      * @return void
      */
-    public function parse_slug_id($slug){
+    public function parse_slug_id($slug)
+    {
         switch ($slug) {
             case 'carros':
                 return 1;
@@ -47,7 +48,8 @@ class VehiculosController extends Controller
                 return 6;
         }
     }
-    public function parse_slug_id_tipo($slug){
+    public function parse_slug_id_tipo($slug)
+    {
         switch ($slug) {
             case 'Chopper':
                 return 1;
@@ -99,17 +101,17 @@ class VehiculosController extends Controller
             'q' => $request->query('q') ? $request->query('q') : null
         );
         $selectArray = array(
-            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio','vehicles.condicion', 'vehicles.cilindraje',
+            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion', 'vehicles.cilindraje',
             'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'UC.nombre AS labelCiudad',
-            'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca', 
+            'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca',
             'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TP.nombre AS tipoPrecioLabel'
         );
-        if($filtros['categoria'] === 'motos'){
+        if ($filtros['categoria'] === 'motos') {
             $selectArray[] = 'TM.nombre AS tipoMotoLabel';
         }
         $result = Vehicles::select(
-                $selectArray
-            )
+            $selectArray
+        )
             ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
             ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
             ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
@@ -121,8 +123,8 @@ class VehiculosController extends Controller
             ->where('vehicles.activo', 1);
         /****/
 
-        
-        if($filtros['categoria'] === 'motos'){
+
+        if ($filtros['categoria'] === 'motos') {
             $result->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
         }
 
@@ -135,31 +137,31 @@ class VehiculosController extends Controller
         if ($filtros['categoria']) {
             $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
         }
-        
+
         $marcas_all = $result->groupBy('vehicles.id')->get();
         $collectionMarcas = collect($marcas_all);
         $colector = $collectionMarcas;
         $contadorMarcas = $colector->countBy('marca');
-        
-        
+
+
         //Tag search Filter
-        if( $filtros['q'] ){
-            $result->where('vehicles.title', 'LIKE', '%'.$filtros['q'].'%');
+        if ($filtros['q']) {
+            $result->where('vehicles.title', 'LIKE', '%' . $filtros['q'] . '%');
         }
-        if( $filtros['ubicacion'] ){
+        if ($filtros['ubicacion']) {
             $result->where('UD.nombre', $filtros['ubicacion']);
         }
-        if( $filtros['ciudad'] ){
+        if ($filtros['ciudad']) {
             $result->where('UC.nombre', $filtros['ciudad']);
         }
-        if( $filtros['motor'] ){
+        if ($filtros['motor']) {
             $result->where('MO.nombre', $filtros['motor']);
         }
-        if( $filtros['tipo'] ){
+        if ($filtros['tipo']) {
             $result->where('vehicles.tipo_moto', $this->parse_slug_id_tipo($filtros['tipo']));
         }
         //Cateoria Filter
-        
+
         if ($filtros['marca']) {
             $total_modelos = Modelos::select('modelos.id', 'modelos.nombre')
                 ->join('marcas AS MA', 'MA.id', 'marca_id')
@@ -228,7 +230,7 @@ class VehiculosController extends Controller
         $total_records = count($result->groupBy('vehicles.id')->get());
         $result = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
 
-        if(isset($total_modelos)){
+        if (isset($total_modelos)) {
             $collectionModelos = collect($total_modelos);
             $filteredModelos = $collectionModelos;
         }
@@ -236,12 +238,12 @@ class VehiculosController extends Controller
         $total_departamentos = ubicacion_departamentos::orderBy('nombre')->get();
         $filterredDepartamentos = collect($total_departamentos);
 
-        if($filtros['ubicacion']){
+        if ($filtros['ubicacion']) {
             $total_ciudades = ubicacion_ciudades::select('ubicacion_ciudades.id', 'ubicacion_ciudades.nombre')
-            ->join('ubicacion_departamentos AS UD', 'UD.id', 'ubicacion_ciudades.id_departamento')
-            ->where('UD.nombre', $filtros['ubicacion'])
-            ->orderBy('ubicacion_ciudades.nombre')
-            ->get();
+                ->join('ubicacion_departamentos AS UD', 'UD.id', 'ubicacion_ciudades.id_departamento')
+                ->where('UD.nombre', $filtros['ubicacion'])
+                ->orderBy('ubicacion_ciudades.nombre')
+                ->get();
             $filterredCiudades = collect($total_ciudades);
         }
 
@@ -255,7 +257,7 @@ class VehiculosController extends Controller
             'ubicacion' => $filterredDepartamentos->countBy('nombre'),
             'ciudad' => (isset($filterredCiudades)) ? $filterredCiudades->countBy('nombre') : []
         );
-        if($filtros['categoria'] === 'motos'){
+        if ($filtros['categoria'] === 'motos') {
             $contadores['tipo'] = $filteredMarcas->countBy('tipoMotoLabel');
         }
         $response = [
@@ -268,124 +270,129 @@ class VehiculosController extends Controller
 
         return $response;
     }
-    public function detalle($slug){
+    public function detalle($slug)
+    {
 
-            $arrayUrl = explode('-', $slug);
-            $id = $arrayUrl[COUNT($arrayUrl) - 1];
+        $arrayUrl = explode('-', $slug);
+        $id = $arrayUrl[COUNT($arrayUrl) - 1];
 
-            $vehiculoViews = Vehicles::select('views')->where('vehicles.id', $id) ->first();
-            if ($vehiculoViews) {
-                \DB::table('vehicles')->where('id', $id)->update(['views' => ($vehiculoViews->views + 1)]);
+        $vehiculoViews = Vehicles::select('views')->where('vehicles.id', $id)->first();
+        if ($vehiculoViews) {
+            \DB::table('vehicles')->where('id', $id)->update(['views' => ($vehiculoViews->views + 1)]);
+        }
+
+        $vehiculo = Vehicles::select(
+            'vehicles.*',
+            'C.nombre AS combustibleLabel',
+            'CO.nombre AS colorLabel',
+            'T.nombre AS transmisionLabel',
+            'M.nombre AS modeloLabel',
+            'M.id AS modeloId',
+            'MA.nombre AS marcaLabel',
+            'MA.id AS marcaId',
+            'TV.nombre AS tipoLabel',
+            'TV.id AS tipoId',
+            'TM.nombre AS tipoMotoLabel',
+            'TM.id AS tipoMotoId',
+            'UC.nombre AS ciudadLabel',
+            'UD.nombre AS departamentoLabel',
+            'TP.nombre AS tipoPrecioLabel',
+            'I.nombre AS nameImage',
+            'I.extension',
+            'I.new_image'
+        )
+            ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
+            ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
+            ->leftJoin('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')
+            ->join('combustibles AS C', 'C.id', 'vehicles.combustible')
+            ->join('colores AS CO', 'CO.id', 'vehicles.color')
+            ->join('transmisiones AS T', 'T.id', 'vehicles.transmision')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+            ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
+            ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
+            ->where('vehicles.id', $id)
+            ->first();
+
+        $urlCategory = str_replace(' ', '-', $vehiculo->tipoLabel) . '_' . $vehiculo->tipoId;
+        $urlTypeMoto = str_replace(' ', '-', $vehiculo->tipoMotoLabel) . '_' . $vehiculo->tipoMotoId;
+        $urlMarca = str_replace(' ', '-', $vehiculo->marcaLabel) . '_' . $vehiculo->marcaId;
+        $urlModelo = str_replace(' ', '-', $vehiculo->modeloLabel) . '_' . $vehiculo->modeloId;
+
+        $date1 = new DateTime($vehiculo->fecha_publicacion);
+        $date2 = new DateTime();
+        $diff = $date1->diff($date2);
+        $diasPublicado = $diff->days;
+
+        $imagenes = imagenes::select(
+            \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".") AS url'),
+            'imagenes.extension',
+            'imagenes.new_image'
+        )
+            ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
+            ->where('IV.id_vehicle', $id)
+            ->orderBy('imagenes.order', 'ASC')
+            ->get();
+
+        $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->where('activo', 1)
+            ->where('vehicles.modelo_id', $vehiculo->modelo_id)
+            ->where('vehicles.id', '<>', $vehiculo->id)
+            ->groupBy('vehicles.id')
+            ->limit(10)
+            ->get();
+
+        $vehiculosRelacionadosCount = Vehicles::where('activo', 1)
+            ->where('vehicles.modelo_id', $vehiculo->modelo_id)
+            ->where('vehicles.id', '<>', $vehiculo->id)
+            ->count();
+
+        $vehicleFav = array();
+
+        $user = Auth::user();
+        if ($user) {
+            //Si esta logueado entonces almacena la busqueda
+            $existBusqueda = Busquedas::where('user_id', $user->id)->where('vehiculo_id', $vehiculo->id)->get();
+            if (COUNT($existBusqueda) == 0) {
+                $busqueda = Busquedas::insert([
+                    'user_id' => $user->id,
+                    'vehiculo_id' => $vehiculo->id,
+                    'fecha' => date('Y-m-d'),
+                ]);
             }
+            $vehicleFav = Favoritos::where('vehiculo_id', $vehiculo->id)->where('user_id', $user->id)->get();
+        }
 
-            $vehiculo = Vehicles::select(
-                'vehicles.*',
-                'C.nombre AS combustibleLabel',
-                'CO.nombre AS colorLabel',
-                'T.nombre AS transmisionLabel',
-                'M.nombre AS modeloLabel',
-                'M.id AS modeloId',
-                'MA.nombre AS marcaLabel',
-                'MA.id AS marcaId',
-                'TV.nombre AS tipoLabel',
-                'TV.id AS tipoId',
-                'TM.nombre AS tipoMotoLabel',
-                'TM.id AS tipoMotoId',
-                'UC.nombre AS ciudadLabel',
-                'UD.nombre AS departamentoLabel',
-                'TP.nombre AS tipoPrecioLabel',
-                'I.nombre AS nameImage', 'I.extension', 'I.new_image'
-            )
-                ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
-                ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
-                ->leftJoin('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')
-                ->join('combustibles AS C', 'C.id', 'vehicles.combustible')
-                ->join('colores AS CO', 'CO.id', 'vehicles.color')
-                ->join('transmisiones AS T', 'T.id', 'vehicles.transmision')
-                ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
-                ->join('marcas AS MA', 'MA.id', 'M.marca_id')
-                ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
-                ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
-                ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
-                ->where('vehicles.id', $id)
-                ->first();
+        $response = [
+            'status' => true,
+            'vehiculo' => $vehiculo,
+            'imagenes' => $imagenes,
+            'vehiculosRelacionados' => $vehiculosRelacionados,
+            'vehiculosRelacionadosCount' => $vehiculosRelacionadosCount,
+            'vehicleFav' => $vehicleFav,
+            'diasPublicado' => $diasPublicado,
+            'urlCategory' => $urlCategory,
+            'urlTypeMoto' => $urlTypeMoto,
+            'urlMarca' => $urlMarca,
+            'urlModelo' => $urlModelo
+        ];
 
-            $urlCategory = str_replace(' ', '-', $vehiculo->tipoLabel) . '_' . $vehiculo->tipoId;
-            $urlTypeMoto = str_replace(' ', '-', $vehiculo->tipoMotoLabel) . '_' . $vehiculo->tipoMotoId;
-            $urlMarca = str_replace(' ', '-', $vehiculo->marcaLabel) . '_' . $vehiculo->marcaId;
-            $urlModelo = str_replace(' ', '-', $vehiculo->modeloLabel) . '_' . $vehiculo->modeloId;
-
-            $date1 = new DateTime($vehiculo->fecha_publicacion);
-            $date2 = new DateTime();
-            $diff = $date1->diff($date2);
-            $diasPublicado = $diff->days;
-
-            $imagenes = imagenes::select(
-                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".") AS url'),
-                'imagenes.extension',
-                'imagenes.new_image'
-            )
-                ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
-                ->where('IV.id_vehicle', $id)
-                ->orderBy('imagenes.order', 'ASC')
-                ->get();
-
-            $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
-                ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
-                ->join('imagenes AS I', 'I.id', 'IV.id_image')
-                ->where('activo', 1)
-                ->where('vehicles.modelo_id', $vehiculo->modelo_id)
-                ->where('vehicles.id', '<>', $vehiculo->id)
-                ->groupBy('vehicles.id')
-                ->limit(10)
-                ->get();
-
-            $vehiculosRelacionadosCount = Vehicles::where('activo', 1)
-                ->where('vehicles.modelo_id', $vehiculo->modelo_id)
-                ->where('vehicles.id', '<>', $vehiculo->id)
-                ->count();
-
-            $vehicleFav = array();
-
-            $user = Auth::user();
-            if($user){
-                //Si esta logueado entonces almacena la busqueda
-                $existBusqueda = Busquedas::where('user_id', $user->id)->where('vehiculo_id', $vehiculo->id)->get();
-                if (COUNT($existBusqueda) == 0) {
-                    $busqueda = Busquedas::insert([
-                        'user_id' => $user->id,
-                        'vehiculo_id' => $vehiculo->id,
-                        'fecha' => date('Y-m-d'),
-                    ]);
-                }
-                $vehicleFav = Favoritos::where('vehiculo_id', $vehiculo->id)->where('user_id', $user->id)->get();
-            }
-
-            $response = [
-                'status' => true,
-                'vehiculo' => $vehiculo,
-                'imagenes' => $imagenes,
-                'vehiculosRelacionados' => $vehiculosRelacionados,
-                'vehiculosRelacionadosCount' => $vehiculosRelacionadosCount,
-                'vehicleFav' => $vehicleFav,
-                'diasPublicado' => $diasPublicado,
-                'urlCategory' => $urlCategory,
-                'urlTypeMoto' => $urlTypeMoto,
-                'urlMarca' => $urlMarca,
-                'urlModelo' => $urlModelo
-            ];
-
-            return $response;
+        return $response;
     }
 
-    public function modelos($id){
+    public function modelos($id)
+    {
         $modelos = Modelos::select('*')->where('marca_id', $id)->get();
         $result = [
             'modelos' => $modelos,
         ];
         return $result;
     }
-    public function marcas($id){
+    public function marcas($id)
+    {
         $marcas = Marcas::select('*')->where('categoria_id', $id)->get();
         $result = [
             'marcas' => $marcas,
@@ -449,8 +456,8 @@ class VehiculosController extends Controller
                 'sku' => $sku,
                 'cilindraje' => (int) $cilindrajeVehiculo,
                 'financiacion' => $request->financiacion,
-                'tipo_moto' => ($request->tipo_vehiculo === 5)? 1 : 0,
-                'blindado' => ($request->blindado_vehiculo == 2)? 0: $request->blindado_vehiculo,
+                'tipo_moto' => ($request->tipo_vehiculo === 5) ? 1 : 0,
+                'blindado' => ($request->blindado_vehiculo == 2) ? 0 : $request->blindado_vehiculo,
             ]);
 
             $images = $request->images;
@@ -518,7 +525,6 @@ class VehiculosController extends Controller
 
             return $response;
         }
-
     }
 
     public function edit_vehicle(Request $request)
@@ -550,7 +556,7 @@ class VehiculosController extends Controller
                 ->where('vehicles.id', $request->id)
                 ->first();
 
-            if($vehiculo->vendedor_id !== $request->user_id){
+            if ($vehiculo->vendedor_id !== $request->user_id) {
                 $response = [
                     'status' => true,
                     'intruder' => true,
@@ -630,7 +636,7 @@ class VehiculosController extends Controller
     {
         try {
             $validVehicle = \DB::table('vehicles')->select('vendedor_id', 'precio')->where('id', $request->id)->first();
-            if($validVehicle->vendedor_id !== $request->user_id){
+            if ($validVehicle->vendedor_id !== $request->user_id) {
                 $response = [
                     'status' => true,
                     'intruder' => true,
@@ -646,7 +652,7 @@ class VehiculosController extends Controller
 
             $republicar = 0;
 
-            if($validVehicle->precio !== (int) $precioVehiculo){
+            if ($validVehicle->precio !== (int) $precioVehiculo) {
                 $republicar = 1;
             }
 
@@ -734,6 +740,52 @@ class VehiculosController extends Controller
             $response = [
                 'status' => true,
                 'intruder' => false,
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+            ];
+
+            return $response;
+        }
+    }
+
+    public function remove_vehicle(Request $request)
+    {
+        try {
+            $busquedas = \DB::table('busquedas')
+                ->where('vehiculo_id', $request->id)
+                ->delete();
+
+            $favoritos = \DB::table('favoritos')
+                ->where('vehiculo_id', $request->id)
+                ->delete();
+
+            $vehicle = \DB::table('vehicles')
+                ->where('id', $request->id)
+                ->delete();
+
+            $images = \DB::table('imagenes')
+                ->where('id_vehicle', $request->id)
+                ->delete();
+
+            return ['status' => true];
+        } catch (\Throwable $th) {
+            return ['status' => false];
+        }
+    }
+
+    public function sold_vehicle(Request $request)
+    {
+        try {
+            $vehicle = \DB::table('vehicles')
+                ->where('id', $request->id)
+                ->update(['vendido' => 1, 'activo' => 0]);
+
+            $response = [
+                'status' => true,
             ];
 
             return $response;
