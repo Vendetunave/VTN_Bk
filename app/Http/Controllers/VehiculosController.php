@@ -798,4 +798,71 @@ class VehiculosController extends Controller
         }
     }
 
+    public function upload_vehicle_image(Request $request)
+    {
+        try {
+            $idVehicle = $request->id;
+            $image = $request->source;
+            $image = str_replace('data:image/jpeg;base64,', '', $image);
+            $image = str_replace(' ', '+', $image);
+            $name = uniqid();
+            $imageName = $name . '.' . 'jpeg';
+
+
+            Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $imageName, base64_decode($image), 'public');
+
+            $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
+            Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+            $imageThumb = Image::make(base64_decode($image));
+            $w = $imageThumb->width();
+            $h = $imageThumb->height();
+            if ($w > $h) {
+                $imageThumb->resize(300, null, function ($constraint) {
+                    $constraint->aspectRatio();
+                });
+            } else {
+                $imageThumb->resize(null, 300, function ($constraint) {
+                    $constraint->aspectRatio();
+                });
+            }
+
+            $imageThumbJpeg = $imageThumb;
+            $imageThumb->encode('webp', 100);
+            $imageThumbJpeg->encode('jpeg', 100);
+
+            Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+            Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.jpeg', $imageThumbJpeg, 'public');
+
+            $imagenId = imagenes::insertGetId([
+                'nombre' => $name,
+                'path' => 'vendetunave/images/vehiculos/',
+                'extension' => 'jpeg',
+                'order' => 1,
+                'id_vehicle' => $idVehicle,
+                'new_image' => 2
+            ]);
+
+            $imagevehiculo = Imagenes_vehiculo::insert([
+                'id_vehicle' => $idVehicle,
+                'id_image' => $imagenId
+            ]);
+
+            $urlBase = 'https://vendetunave.s3.amazonaws.com';
+
+            $response = [
+                'status' => true,
+                'imagen_id' => $imagenId,
+                'url_image_jpeg' => $urlBase . '/vendetunave/images/vehiculos/' . $imageName,
+                'url_image_webp' => $urlBase . '/vendetunave/images/vehiculos/' . $name . '.webp',
+                'url_thumbnail_jpeg' => $urlBase . '/vendetunave/images/thumbnails/' . $name . '300x300.jpeg',
+                'url_thumbnail_webp' => $urlBase . '/vendetunave/images/thumbnails/' . $name . '300x300.webp',
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            echo $th;
+            return [ 'status' => false ];
+        }
+    }
 }
