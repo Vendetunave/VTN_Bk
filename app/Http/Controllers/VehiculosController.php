@@ -462,52 +462,14 @@ class VehiculosController extends Controller
 
             $images = $request->images;
             foreach ($images as $keyImage => $itemImage) {
-                $image = $itemImage;
-                $image = str_replace('data:image/jpeg;base64,', '', $image);
-                $image = str_replace(' ', '+', $image);
-                $name = uniqid();
-                $imageName = $name . '.' . 'jpeg';
-
-
-                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $imageName, base64_decode($image), 'public');
-
-                $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
-                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
-
-                if (($keyImage + 1) == 1) {
-                    $imageThumb = Image::make(base64_decode($image));
-                    $w = $imageThumb->width();
-                    $h = $imageThumb->height();
-                    if ($w > $h) {
-                        $imageThumb->resize(300, null, function ($constraint) {
-                            $constraint->aspectRatio();
-                        });
-                    } else {
-                        $imageThumb->resize(null, 300, function ($constraint) {
-                            $constraint->aspectRatio();
-                        });
-                    }
-
-                    $imageThumbJpeg = $imageThumb;
-                    $imageThumb->encode('webp', 100);
-                    $imageThumbJpeg->encode('jpeg', 100);
-
-                    Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
-                    Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.jpeg', $imageThumbJpeg, 'public');
-                }
-
-                $imagenId = imagenes::insertGetId([
-                    'nombre' => $name,
-                    'path' => 'vendetunave/images/vehiculos/',
-                    'extension' => 'jpeg',
+                \DB::table('imagenes')->where('id', $itemImage['id'])->update([
                     'order' => ($keyImage + 1),
                     'id_vehicle' => $vehiculoId,
-                    'new_image' => (($keyImage + 1) == 1) ? 2 : 1
                 ]);
 
-                $imagevehiculo = Imagenes_vehiculo::insert([
+                Imagenes_vehiculo::insert([
                     'id_vehicle' => $vehiculoId,
-                    'id_image' => $imagenId
+                    'id_image' => $itemImage['id']
                 ]);
             }
 
@@ -656,7 +618,7 @@ class VehiculosController extends Controller
                 $republicar = 1;
             }
 
-            $vehiculos = \DB::table('vehicles')->where('id', $request->id)->update([
+            \DB::table('vehicles')->where('id', $request->id)->update([
                 'title' => $request->titulo_vehiculo,
                 'descripcion' => $request->descripcion_vehiculo,
                 'condicion' => $request->estado_vehiculo,
@@ -684,58 +646,32 @@ class VehiculosController extends Controller
                 'republicar' => $republicar
             ]);
 
-            // if($request->get('image', false)) {
-            //     $images = $request->image;
-            //     foreach ($images as $itemImage) {
-            //         $image = $itemImage["uri"];
-            //         $image = str_replace('data:image/jpeg;base64,', '', $image);
-            //         $image = str_replace(' ', '+', $image);
-            //         $name = uniqid();
-            //         $imageName = $name . '.' . 'jpeg';
+            $images = $request->images;
+            $imagesOld = \DB::table('imagenes')->where('id_vehicle', $request->id)->get();
 
+            foreach ($imagesOld as $imageOld) {
+                $encontrada = 0;
+                foreach ($images as $itemImage) {
+                    if($imageOld->id === $itemImage['id']) $encontrada = 1;
+                }
 
-            //         Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $imageName, base64_decode($image), 'public');
+                if($encontrada == 0) {
+                    \DB::table('imagenes')->where('id', $imageOld->id)->delete();
+                }
+            }
+            \DB::table('imagenes_vehiculo')->where('id_vehicle', $request->id)->delete();
 
-            //         $imageConvert = (string) Image::make(base64_decode($image))->encode('webp', 100);
-            //         Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+            foreach ($images as $keyImage => $itemImage) {
+                \DB::table('imagenes')->where('id', $itemImage['id'])->update([
+                    'order' => ($keyImage + 1),
+                    'id_vehicle' => $request->id,
+                ]);
 
-            //         if ($itemImage["order"] == 1) {
-            //             $imageThumb = Image::make(base64_decode($image));
-            //             $w = $imageThumb->width();
-            //             $h = $imageThumb->height();
-            //             if ($w > $h) {
-            //                 $imageThumb->resize(300, null, function ($constraint) {
-            //                     $constraint->aspectRatio();
-            //                 });
-            //             } else {
-            //                 $imageThumb->resize(null, 300, function ($constraint) {
-            //                     $constraint->aspectRatio();
-            //                 });
-            //             }
-
-            //             $imageThumbJpeg = $imageThumb;
-            //             $imageThumb->encode('webp', 100);
-            //             $imageThumbJpeg->encode('jpeg', 100);
-
-            //             Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
-            //             Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.jpeg', $imageThumbJpeg, 'public');
-            //         }
-
-            //         $imagenId = imagenes::insertGetId([
-            //             'nombre' => $name,
-            //             'path' => 'vendetunave/images/vehiculos/',
-            //             'extension' => 'jpeg',
-            //             'order' => $itemImage["order"],
-            //             'id_vehicle' => $request->id,
-            //             'new_image' => ($itemImage["order"] == 1) ? 2 : 1
-            //         ]);
-
-            //         $imagevehiculo = Imagenes_vehiculo::insert([
-            //             'id_vehicle' => $request->id,
-            //             'id_image' => $imagenId
-            //         ]);
-            //     }
-            // }
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $itemImage['id']
+                ]);
+            }
 
             $response = [
                 'status' => true,
@@ -801,7 +737,6 @@ class VehiculosController extends Controller
     public function upload_vehicle_image(Request $request)
     {
         try {
-            $idVehicle = $request->id;
             $image = $request->source;
             $image = str_replace('data:image/jpeg;base64,', '', $image);
             $image = str_replace(' ', '+', $image);
@@ -839,14 +774,10 @@ class VehiculosController extends Controller
                 'path' => 'vendetunave/images/vehiculos/',
                 'extension' => 'jpeg',
                 'order' => 1,
-                'id_vehicle' => $idVehicle,
+                'id_vehicle' => 0,
                 'new_image' => 2
             ]);
 
-            $imagevehiculo = Imagenes_vehiculo::insert([
-                'id_vehicle' => $idVehicle,
-                'id_image' => $imagenId
-            ]);
 
             $urlBase = 'https://vendetunave.s3.amazonaws.com';
 
@@ -861,8 +792,7 @@ class VehiculosController extends Controller
 
             return $response;
         } catch (\Throwable $th) {
-            echo $th;
-            return [ 'status' => false ];
+            return ['status' => false];
         }
     }
 }
