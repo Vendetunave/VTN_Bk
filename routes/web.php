@@ -81,4 +81,7 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->post('generar-restablecer-contrasena', 'OtrosController@restablecer_contrasena_link');
     $router->post('restablecer-contrasena', 'OtrosController@restablecer_contrasena');
     $router->get('validar-token/{token}', 'OtrosController@validar_token');
+
+    $router->get('pattners/{slug}', 'PatternsController@getPatterns');
+    $router->put('click-pattner/{id}', 'PatternsController@onClick');
 });
