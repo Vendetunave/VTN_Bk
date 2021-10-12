@@ -51,6 +51,8 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
+    $router->get('sitemap', 'OtrosController@sitemap');
+
     $router->get('home', 'HomeController@show');
     $router->get('config', 'HomeController@config');
     $router->post('newsletter', 'HomeController@newsletter');
