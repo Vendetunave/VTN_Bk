@@ -13,7 +13,10 @@ use App\Models\tokens;
 
 use Illuminate\Support\Facades\Mail;
 use App\Models\Config;
+use App\Models\DataSheet;
 use App\Models\financiacion;
+use App\Models\Pregunta;
+use App\Models\Vehicles;
 use Illuminate\Support\Facades\Hash;
 
 class OtrosController extends Controller
@@ -228,5 +231,20 @@ class OtrosController extends Controller
 
             return $response;
         }
+    }
+
+    public function sitemap()
+    {
+        $vehiculos = Vehicles::select('id', 'title')->where('activo', 1)->get();
+        $fichaTecnica = DataSheet::select('id', 'title')->where('active', 1)->get();
+        $preguntas = Pregunta::select('id', 'titulo')->where('aprobado', 1)->get();
+
+        $response = [
+            'vehiculos' => $vehiculos,
+            'ficha_tecnica' => $fichaTecnica,
+            'preguntas' => $preguntas
+        ];
+
+        return $response;
     }
 }
