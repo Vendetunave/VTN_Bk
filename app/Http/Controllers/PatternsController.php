@@ -11,7 +11,7 @@ class PatternsController extends Controller
     public function getPatterns(Request $request)
     {
         try {
-            $patterns = Patterns::where('active', 1)->where('slug', $request->slug)->get();
+            $patterns = Patterns::where('active', 1)->where('slug', $request->slug)->inRandomOrder()->first();
 
             $response = [
                 'status' => true,

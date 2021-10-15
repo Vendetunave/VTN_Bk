@@ -169,28 +169,32 @@ class OtrosController extends Controller
 
     public function restablecer_contrasena_link(Request $request)
     {
-        $user = Users::where('email', $request->email)->first();
+        try {
+            $user = Users::where('email', $request->email)->first();
 
-        if ($user) {
+            if ($user) {
 
-            $linkEncrypt = md5(rand(1, 1000) . date('Y-m-d H:i:s'));
+                $linkEncrypt = md5(rand(1, 1000) . date('Y-m-d H:i:s'));
 
-            $token = tokens::insert([
-                'token' => $linkEncrypt,
-                'user_id' => $user->id,
-                'fecha' => date('Y-m-d H:i:s'),
-            ]);
+                tokens::insert([
+                    'token' => $linkEncrypt,
+                    'user_id' => $user->id,
+                    'fecha' => date('Y-m-d H:i:s'),
+                ]);
 
-            $subject = "Restablecimiento de su contraseña";
-            $for = $user->email;
-            Mail::send('mailPassword', ['user' => $user, 'token' => $linkEncrypt], function ($msj) use ($subject, $for) {
-                $msj->from("no-reply@vendetunave.co", "VendeTuNave");
-                $msj->subject($subject);
-                $msj->to($for);
-            });
-            return ['status' => true];
-        } else {
-            return ['status' => false];
+                $subject = "Restablecimiento de su contraseña";
+                $for = $user->email;
+                Mail::send('mailPassword', ['user' => $user, 'token' => $linkEncrypt], function ($msj) use ($subject, $for) {
+                    $msj->from("no-reply@vendetunave.co", "VendeTuNave");
+                    $msj->subject($subject);
+                    $msj->to($for);
+                });
+                return ['status' => true];
+            } else {
+                return ['status' => false, 'message' => 'Lo sentimos, tu usuario no se encuentra en nuestra base de datos.'];
+            }
+        } catch (\Throwable $th) {
+            return ['status' => false, 'message' => 'Lo sentimos! Identificamos que tienes un problema con tu configuración de servidor de correos. Por favor ponte en contacto con tu administrador.'];
         }
     }
 
