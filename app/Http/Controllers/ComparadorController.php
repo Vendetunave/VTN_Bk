@@ -91,7 +91,7 @@ class ComparadorController extends Controller
         $response = [
             'vehiculo' => $compare,
         ];
-        //return $response;
+
         $pdf = Facade::loadView('comparePdfDatasheet', $response);
         return $pdf->download('archivo.pdf');
     }
