@@ -48,6 +48,8 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
 
     $router->post('crear_pregunta', 'ComunidadController@createQuestion');
 
+    $router->post('documento-compra-venta', 'DocumentsController@salesPurchaseDocument');
+    $router->post('documento-mandato', 'DocumentsController@mandateDocument');
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
