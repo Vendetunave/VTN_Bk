@@ -2,13 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bodywork;
 use App\Models\Documents;
+use App\Models\Marcas;
+use App\Models\Modelos;
+use App\Models\VehicleClass;
 use Illuminate\Http\Request;
 
 use Barryvdh\DomPDF\Facade;
 
 class DocumentsController extends Controller
 {
+    public function informationDocuments()
+    {
+        $marcas = Marcas::all();
+        $modelos = Modelos::all();
+        $clase_vehiculo = VehicleClass::all();
+        $carroceria = Bodywork::all();
+
+        $response = [
+            'marcas' => $marcas,
+            'modelos' => $modelos,
+            'clase_vehiculo' => $clase_vehiculo,
+            'carroceria' => $carroceria
+        ];
+
+        return $response;
+    }
+
     public function salesPurchaseDocument(Request $request)
     {
         try {
@@ -113,7 +134,7 @@ class DocumentsController extends Controller
                 'information' => $information,
             ];
     
-            $pdf = Facade::loadView('salesPurchaseDocument', $response);
+            $pdf = Facade::loadView('mandateDocument', $response);
             return $pdf->download('archivo.pdf');
         } catch (\Throwable $th) {
             return [ 'status' => false, 'error' => $th ];

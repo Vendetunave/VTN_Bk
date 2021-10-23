@@ -88,4 +88,6 @@ $router->group(['prefix' => 'api'], function () use ($router){
 
     $router->get('pattners/{slug}', 'PatternsController@getPatterns');
     $router->put('click-pattner/{id}', 'PatternsController@onClick');
+
+    $router->get('informacion-documentos', 'DocumentsController@informationDocuments');
 });
