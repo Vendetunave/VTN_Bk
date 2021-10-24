@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bodywork;
+use App\Models\Combustibles;
 use App\Models\Documents;
 use App\Models\Marcas;
 use App\Models\Modelos;
@@ -19,10 +20,12 @@ class DocumentsController extends Controller
         $modelos = Modelos::all();
         $clase_vehiculo = VehicleClass::all();
         $carroceria = Bodywork::all();
+        $combustibles = Combustibles::all();
 
         $response = [
             'marcas' => $marcas,
             'modelos' => $modelos,
+            'combustibles' => $combustibles,
             'clase_vehiculo' => $clase_vehiculo,
             'carroceria' => $carroceria
         ];
@@ -86,7 +89,7 @@ class DocumentsController extends Controller
             $pdf = Facade::loadView('salesPurchaseDocument', $response);
             return $pdf->download('archivo.pdf');
         } catch (\Throwable $th) {
-            return [ 'status' => false ];
+            return [ 'status' => false, 'message' => $th ];
         }
     }
 
