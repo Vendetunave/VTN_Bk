@@ -46,10 +46,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('remove_favorito_ficha', 'UsuarioController@remove_favorito_ficha');
     $router->post('profile_update', 'UsuarioController@profile_update');
 
-    $router->post('crear_pregunta', 'ComunidadController@createQuestion');
-
-    $router->post('documento-compra-venta', 'DocumentsController@salesPurchaseDocument');
-    $router->post('documento-mandato', 'DocumentsController@mandateDocument');
+    $router->post('crear_pregunta', 'ComunidadController@createQuestion');    
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
@@ -90,4 +87,7 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->put('click-pattner/{id}', 'PatternsController@onClick');
 
     $router->get('informacion-documentos', 'DocumentsController@informationDocuments');
+    $router->post('documento-compra-venta', 'DocumentsController@salesPurchaseDocument');
+    $router->post('documento-mandato', 'DocumentsController@mandateDocument');
+    $router->post('documento-tramite', 'DocumentsController@procedureDocument');
 });

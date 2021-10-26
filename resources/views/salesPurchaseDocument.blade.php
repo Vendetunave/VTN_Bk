@@ -99,6 +99,10 @@
         </div>
     </header>
 
+    <footer>
+        <p>vendetunave.co</p>
+    </footer>
+
     <main>
         <br />
         <br />
@@ -260,7 +264,6 @@
         </table>
 
         <br />
-        <br />
         <p style="text-align: center; margin: 0">Página 1 de 2</p>
         <div class="page_break"></div>
 
@@ -355,9 +358,10 @@
         <div>
             <div style="display: inline-block; width: 48%">
                 <div style="display: inline-block; width: 65%">
-                    <p style="width: 100%; border-bottom: 1px solid black; font-weight: bold;">&nbsp;&nbsp;X</p>
+                    <p style="width: 100%; border-bottom: 1px solid black; font-weight: bold; margin: 2px">&nbsp;&nbsp;X</p>
+                    <b>VENDEDOR</b>
                     <div>
-                        <p style="display: inline-block;  width: 10%; margin-bottom: 0; margin-top: 0;">C.C. </p>
+                        <p style="display: inline-block;  width: 10%; margin-bottom: 0; margin-top: 10px;">C.C. </p>
                         <p style="display: inline-block; border-bottom: 1px solid black;  width: 80%; margin-left: 10px; margin-bottom: 0; margin-top: 0;">&nbsp;{{ $information["documento_vendedor"] }}</p>
                     </div>
                 </div>
@@ -370,9 +374,10 @@
             </div>
             <div style="display: inline-block; width: 48%; margin-left: 15px">
                 <div style="display: inline-block; width: 65%">
-                    <p style="width: 100%; border-bottom: 1px solid black; font-weight: bold;">&nbsp;&nbsp;X</p>
+                    <p style="width: 100%; border-bottom: 1px solid black; font-weight: bold; margin: 2px">&nbsp;&nbsp;X</p>
+                    <b>COMPRADOR</b>
                     <div>
-                        <p style="display: inline-block;  width: 10%;  margin-bottom: 0; margin-top: 0;">C.C. </p>
+                        <p style="display: inline-block;  width: 10%;  margin-bottom: 0; margin-top: 10px;">C.C. </p>
                         <p style="display: inline-block; border-bottom: 1px solid black;  width: 80%; margin-left: 10px;  margin-bottom: 0; margin-top: 0;">&nbsp;{{ $information["documento_comprador"] }}</p>
                     </div>
                 </div>
@@ -384,13 +389,9 @@
                 </div>
             </div>
         </div>
-        <p style="text-align: center; margin: 0; margin-top: -40px">Página 2 de 2</p>
+        <p style="text-align: center; margin: 0; margin-top: -30px">Página 2 de 2</p>
 
     </main>
-
-    <footer>
-        <p>vendetunave.co</p>
-    </footer>
 </body>
 
 </html>

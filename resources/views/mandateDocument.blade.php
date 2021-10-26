@@ -9,7 +9,7 @@
         }
 
         body {
-            margin: 2cm 1cm 1cm;
+            margin: 2.5cm 1cm 1cm 1cm;
         }
 
         header {
@@ -101,31 +101,42 @@
         </div>
     </header>
 
+    <footer>
+        <p>vendetunave.co</p>
+    </footer>
+
     <main>
         <br />
-        <br />
         <b>Ciudad y fecha</b>
-        <br />
-        <p style="width: 100%; border-bottom: 1px solid black;">&nbsp;&nbsp;{{ $information["ciudad"] }} {{ $information["fecha"] }}</p>
-        <p>
+        <p style="width: 100%; border-bottom: 1px solid black; margin: 0">&nbsp;&nbsp;{{ $information["ciudad"] }} {{ $information["fecha"] }}</p>
+        <p style="line-height: 35px;">
             Contrato de mandato suscrito entre
             @if($information["nombre_mandatario"] && $information["nombre_mandatario"] !== "")
             <b>{{$information["nombre_mandatario"]}}</b>
             @else
-            ____________________________________
+            ________________________________________________
             @endif
-            y <b>{{$information["nombre_mandate"]}}</b>.
-
+            y
+            @if($information["nombre_mandate"] && $information["nombre_mandate"] !== "")
+            <b>{{$information["nombre_mandate"]}}</b>.
+            @else
+            ______________________________________________________________ .
+            @endif
         </p>
         <p>
-            Mayor de edad, vecino de esta ciudad, identificado con Cédula de ciudadanía No. <b>{{$information["documento_mandate"]}}</b>
+            Mayor de edad, vecino de esta ciudad, identificado con ________ No.
+            @if($information["documento_mandate"] && $information["documento_mandate"] !== "")
+            <b>{{$information["documento_mandate"]}}</b>
+            @else
+            ____________________________________
+            @endif
             Quien para efectos del presente contrato se denominará <b>EL MANDANTE</b>, y de otro
             @if($information["nombre_mandatario"] && $information["nombre_mandatario"] !== "")
             <b>{{$information["nombre_mandatario"]}}</b>
             @else
             ____________________________________
             @endif
-            también mayor de edad, vecino de esta ciudad, identificado con Cédula de ciudadanía No.
+            también mayor de edad, vecino de esta ciudad, identificado con ________ No.
             @if($information["documento_mandatario"] && $information["documento_mandatario"] !== "")
             <b>{{$information["documento_mandatario"]}}</b>
             @else
@@ -138,15 +149,20 @@
             la materia en concordancia con el <b>Art. 2149 G.C</b>. según las siguientes cláusulas:
         </p>
 
-        <p>
+        <p style="margin: 0;">
             <b>PRIMERA: OBJETO DEL CONTRATO: EL MANDATARIO</b> por cuenta y riesgo del <b>MANDANTE</b> queda facultado para
             <b>solicitar, realizar, radicar, y retirar</b> el trámite de:
         </p>
 
+        @if($information["tramite"] && $information["tramite"] !== "")
         <b>{{$information["tramite"]}}</b>
-        <br />
+        @else
+        <div style="height: 25px; width: 100%; border-bottom: 1px solid black"></div>
+        <div style="height: 25px; width: 100%; border-bottom: 1px solid black"></div>
+        <div style="height: 25px; width: 100%; border-bottom: 1px solid black"></div>
+        @endif
 
-        <p>Del vehículo de propiedad del <b>MANDANTE</b> identificado con las siguientes características:</p>
+        <p style="margin: 0; margin-top: 15px">Del vehículo de propiedad del <b>MANDANTE</b> identificado con las siguientes características:</p>
         <table style="width: 100%; border-collapse: separate; border-spacing: 15px;">
             <tr>
                 <td>
@@ -198,18 +214,15 @@
             </tr>
         </table>
 
-        <p>
+        <p style="margin: 0;">
             Ante el <b>ORGANISMO DE TRANSITO Y TRANSPORTE</b> que corresponda, como consecuencia,
             <b>EL MANDATARIO</b> queda facultado para realizar todas las gestiones propias de este mandato
             y en especial para representar, notificarse, recibir, impugnar, transigir, desistir, sustituir,
             reasumir, pedir, conciliar o asumir obligación s en nombre del MANDANTE y
-            quien SI___ NO ___ <b>queda facultado para delegar el presente contrato de Mandato.</b>
+            quien SI<u>&nbsp;&nbsp;<b>X</b>&nbsp;&nbsp;</u> NO ___ <b>queda facultado para delegar el presente contrato de Mandato.</b>
         </p>
 
-        <br />
-        <br />
-        <br />
-        <p style="text-align: center; margin: 0">Página 1 de 2</p>
+        <p style="text-align: center; margin: 0; margin-top: 14px">Página 1 de 2</p>
         <div class="page_break"></div>
 
         <br />
@@ -236,7 +249,7 @@
                     <p style="width: 100%; border-bottom: 1px solid black; font-weight: bold; margin: 2px">&nbsp;&nbsp;X</p>
                     <b>MANDANTE</b>
                     <div>
-                        <p style="display: inline-block;  width: 10%; margin-bottom: 0; margin-top: 5px;">C.C. </p>
+                        <p style="display: inline-block;  width: 10%; margin-bottom: 0; margin-top: 10px;">C.C. </p>
                         <p style="display: inline-block; border-bottom: 1px solid black;  width: 80%; margin-left: 10px; margin-bottom: 0; margin-top: 0;">&nbsp;{{$information["documento_mandate"]}}</p>
                     </div>
                 </div>
@@ -252,7 +265,7 @@
                     <p style="width: 100%; border-bottom: 1px solid black; font-weight: bold; margin: 2px">&nbsp;&nbsp;X</p>
                     <b>MANDATARIO</b>
                     <div>
-                        <p style="display: inline-block;  width: 10%; margin-bottom: 0; margin-top: 5px;">C.C. </p>
+                        <p style="display: inline-block;  width: 10%; margin-bottom: 0; margin-top: 10px;">C.C. </p>
                         <p style="display: inline-block; border-bottom: 1px solid black;  width: 80%; margin-left: 10px; margin-bottom: 0; margin-top: 0;">&nbsp;{{$information["documento_mandatario"]}}</p>
                     </div>
                 </div>
@@ -288,12 +301,8 @@
         <br />
         <br />
 
-        <p style="text-align: center; margin: 0">Página 2 de 2</p>
+        <p style="text-align: center; margin: 0; margin-top: 7px">Página 2 de 2</p>
     </main>
-
-    <footer>
-        <p>vendetunave.co</p>
-    </footer>
 </body>
 
 </html>
