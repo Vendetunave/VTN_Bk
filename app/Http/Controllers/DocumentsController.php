@@ -11,6 +11,7 @@ use App\Models\VehicleClass;
 use Illuminate\Http\Request;
 
 use Barryvdh\DomPDF\Facade;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentsController extends Controller
 {
@@ -36,7 +37,6 @@ class DocumentsController extends Controller
     public function salesPurchaseDocument(Request $request)
     {
         try {
-            $userId = $request->user_id;
             $requiredInformation = [
                 'nombre_vendedor' => $request->get('nombre_vendedor', null),
                 'documento_vendedor' => $request->get('documento_vendedor', null),
@@ -53,14 +53,14 @@ class DocumentsController extends Controller
                 'placa' => $request->get('placa', null),
                 'precio' => $request->get('precio', null),
             ];
-    
+
             $errors = [];
             foreach ($requiredInformation as $key => $item) {
                 if (!$item) array_push($errors, $key . ' is required');
             }
 
-            if (COUNT($errors) > 0 && COUNT($requiredInformation) !== COUNT($errors)) return [ 'status' => false, 'errors' => $errors ];
-    
+            if (COUNT($errors) > 0 && COUNT($requiredInformation) !== COUNT($errors)) return ['status' => false, 'errors' => $errors];
+
             $unrequiredInformation = [
                 'nombre_comprador' => $request->get('nombre_comprador', null),
                 'documento_comprador' => $request->get('documento_comprador', null),
@@ -76,7 +76,7 @@ class DocumentsController extends Controller
             $information = array_merge($requiredInformation, $unrequiredInformation);
 
             Documents::insert([
-                'user_id' => $userId,
+                'user_id' => 0,
                 'information' => json_encode($information),
                 'type' => 'compra-venta',
                 'created_at' => new \DateTime()
@@ -85,18 +85,17 @@ class DocumentsController extends Controller
             $response = [
                 'information' => $information,
             ];
-    
+
             $pdf = Facade::loadView('salesPurchaseDocument', $response);
             return $pdf->download('archivo.pdf');
         } catch (\Throwable $th) {
-            return [ 'status' => false, 'message' => $th ];
+            return ['status' => false, 'message' => $th];
         }
     }
 
     public function mandateDocument(Request $request)
     {
         try {
-            $userId = $request->user_id;
             $requiredInformation = [
                 'ciudad' => $request->get('ciudad', null),
                 'fecha' => $request->get('fecha', null),
@@ -111,14 +110,14 @@ class DocumentsController extends Controller
                 'motor' => $request->get('motor', null),
                 'chasis' => $request->get('chasis', null),
             ];
-    
+
             $errors = [];
             foreach ($requiredInformation as $key => $item) {
                 if (!$item) array_push($errors, $key . ' is required');
             }
 
-            if (COUNT($errors) > 0 && COUNT($requiredInformation) !== COUNT($errors)) return [ 'status' => false, 'errors' => $errors ];
-    
+            if (COUNT($errors) > 0 && COUNT($requiredInformation) !== COUNT($errors)) return ['status' => false, 'errors' => $errors];
+
             $unrequiredInformation = [
                 'nombre_mandatario' => $request->get('nombre_mandatario', null),
                 'documento_mandatario' => $request->get('documento_mandatario', null),
@@ -127,7 +126,7 @@ class DocumentsController extends Controller
             $information = array_merge($requiredInformation, $unrequiredInformation);
 
             Documents::insert([
-                'user_id' => $userId,
+                'user_id' => 0,
                 'information' => json_encode($information),
                 'type' => 'mandato',
                 'created_at' => new \DateTime()
@@ -136,11 +135,22 @@ class DocumentsController extends Controller
             $response = [
                 'information' => $information,
             ];
-    
+
             $pdf = Facade::loadView('mandateDocument', $response);
             return $pdf->download('archivo.pdf');
         } catch (\Throwable $th) {
-            return [ 'status' => false, 'error' => $th ];
+            return ['status' => false, 'error' => $th];
         }
+    }
+
+    public function procedureDocument()
+    {
+        $file = rtrim(app()->basePath('public/' . 'FUNT.pdf'));
+        $type = 'application/pdf';
+        $headers = ['Content-Type' => $type];
+
+        $response = new BinaryFileResponse($file, 200, $headers);
+
+        return $response;
     }
 }
