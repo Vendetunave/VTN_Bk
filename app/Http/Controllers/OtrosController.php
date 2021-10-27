@@ -251,4 +251,27 @@ class OtrosController extends Controller
 
         return $response;
     }
+
+    public function form_contact(Request $request)
+    {
+        try {
+            $arrayUrl = explode('-', $request->id);
+            $id = $arrayUrl[COUNT($arrayUrl) - 1];
+
+            $vehiculo = Vehicles::where('id', $id)->first();
+            $user = Users::where('id', $vehiculo->vendedor_id)->first();
+
+            $subject = "Alguien está interesado en tu publicación " . $vehiculo->title;
+            $for = $user->email;
+            Mail::send('mailContact', $request->all(), function ($msj) use ($subject, $for) {
+                $msj->from("no-reply@vendetunave.co", "VendeTuNave");
+                $msj->subject($subject);
+                $msj->to($for);
+            });
+            return ['status' => true, 'message' => 'Le hemos notificado al vendedor que estas interesado en su vehículo.'];
+
+        } catch (\Throwable $th) {
+            return ['status' => false, 'message' => 'Lo sentimos! inténtalo más tarde.'];
+        }
+    }
 }
