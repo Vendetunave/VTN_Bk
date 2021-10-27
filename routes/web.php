@@ -60,6 +60,7 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->get('vehiculo/{slug}', 'VehiculosController@detalle');
     $router->get('modelos/{id}', 'VehiculosController@modelos');
     $router->get('marcas/{id}', 'VehiculosController@marcas');
+    $router->post('form_contact', 'OtrosController@form_contact');
 
     $router->get('fichas_tecnicas', 'FichaTecnicaController@fichas_tecnicas');
     $router->get('ficha_tecnica/{slug}', 'FichaTecnicaController@ficha_tecnica');
