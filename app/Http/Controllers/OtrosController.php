@@ -269,9 +269,28 @@ class OtrosController extends Controller
                 $msj->to($for);
             });
             return ['status' => true, 'message' => 'Le hemos notificado al vendedor que estas interesado en su vehículo.'];
-
         } catch (\Throwable $th) {
             return ['status' => false, 'message' => 'Lo sentimos! inténtalo más tarde.'];
+        }
+    }
+
+    public function inAppBrowser()
+    {
+        try {
+            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+            if (strpos($userAgent, 'Instagram')) {
+                header('Content-type: application/pdf');
+                header('Content-Disposition: inline; filename= blablabla');
+                header('Content-Transfer-Encoding: binary');
+                header('Accept-Ranges: bytes');
+                @readfile($file);
+            } else {
+                header('Location: https://www.vendetunave.co/');
+                exit();
+            }
+        } catch (\Throwable $th) {
+            header('Location: https://www.vendetunave.co/');
+            exit();
         }
     }
 }
