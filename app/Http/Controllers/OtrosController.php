@@ -276,19 +276,15 @@ class OtrosController extends Controller
 
     public function inAppBrowser()
     {
-        try {
-            $userAgent = $_SERVER['HTTP_USER_AGENT'];
-            if (strpos($userAgent, 'Instagram')) {
-                header('Content-type: application/pdf');
-                header('Content-Disposition: inline; filename= blablabla');
-                header('Content-Transfer-Encoding: binary');
-                header('Accept-Ranges: bytes');
-                @readfile($file);
-            } else {
-                header('Location: https://www.vendetunave.co/');
-                exit();
-            }
-        } catch (\Throwable $th) {
+        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        if (strpos($userAgent, 'Instagram')) {
+            header('Content-type: application/pdf');
+            header('Content-Disposition: inline; filename= blablabla');
+            header('Content-Transfer-Encoding: binary');
+            header('Accept-Ranges: bytes');
+            $file = rtrim(app()->basePath('public/' . 'FUNT.pdf'));
+            @readfile($file);
+        } else {
             header('Location: https://www.vendetunave.co/');
             exit();
         }
