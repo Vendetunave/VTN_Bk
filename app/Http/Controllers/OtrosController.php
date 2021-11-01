@@ -280,11 +280,8 @@ class OtrosController extends Controller
         if (strpos($userAgent, 'Instagram')) {
             $file = rtrim(app()->basePath('public/' . 'FUNT.pdf'));
             header('Content-Description: File Transfer');
-            header('Content-Type: application/octet-stream');
+            header("Content-type: application/pdf");
             header('Content-Disposition: attachment; filename="'.basename('FUNT.pdf').'"');
-            header('Expires: 0');
-            header('Cache-Control: must-revalidate');
-            header('Pragma: public');
             header('Content-Length: ' . filesize('FUNT.pdf'));
             readfile($file);
         } else {
