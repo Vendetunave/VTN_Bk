@@ -87,6 +87,10 @@ class DocumentsController extends Controller
             ];
 
             $pdf = Facade::loadView('salesPurchaseDocument', $response);
+            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+            if (strpos($userAgent, 'Instagram')) {
+                return $pdf->stream('archivo.pdf');
+            }
             return $pdf->download('archivo.pdf');
         } catch (\Throwable $th) {
             return ['status' => false, 'message' => $th];
@@ -137,6 +141,10 @@ class DocumentsController extends Controller
             ];
 
             $pdf = Facade::loadView('mandateDocument', $response);
+            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+            if (strpos($userAgent, 'Instagram')) {
+                return $pdf->stream('archivo.pdf');
+            }
             return $pdf->download('archivo.pdf');
         } catch (\Throwable $th) {
             return ['status' => false, 'error' => $th];
@@ -146,11 +154,20 @@ class DocumentsController extends Controller
     public function procedureDocument()
     {
         $file = rtrim(app()->basePath('public/' . 'FUNT.pdf'));
-        $type = 'application/pdf';
-        $headers = ['Content-Type' => $type];
+        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        if (strpos($userAgent, 'Instagram')) {
+            header('Content-type: application/pdf');
+            header('Content-Disposition: inline; filename= blablabla');
+            header('Content-Transfer-Encoding: binary');
+            header('Accept-Ranges: bytes');
+            @readfile($file);
+        } else {
+            $type = 'application/pdf';
+            $headers = ['Content-Type' => $type];
 
-        $response = new BinaryFileResponse($file, 200, $headers);
+            $response = new BinaryFileResponse($file, 200, $headers);
 
-        return $response;
+            return $response;
+        }
     }
 }
