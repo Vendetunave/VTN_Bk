@@ -284,9 +284,6 @@ class OtrosController extends Controller
             header('Accept-Ranges: bytes');
             $file = rtrim(app()->basePath('public/' . $request->slug));
             @readfile($file);
-        } else {
-            header('Location: https://www.vendetunave.co/');
-            exit();
         }
     }
 }

@@ -155,16 +155,12 @@ class DocumentsController extends Controller
     {
         $file = rtrim(app()->basePath('public/' . 'FUNT.pdf'));
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
-        if (strpos($userAgent, 'Instagram')) {
-            header('Location: https://api.vendetunave.co/api/in-app-browser/FUNT.pdf');
-            exit();
-        } else {
-            $type = 'application/pdf';
-            $headers = ['Content-Type' => $type];
 
-            $response = new BinaryFileResponse($file, 200, $headers);
+        $type = 'application/pdf';
+        $headers = ['Content-Type' => $type];
 
-            return $response;
-        }
+        $response = new BinaryFileResponse($file, 200, $headers);
+
+        return $response;
     }
 }
