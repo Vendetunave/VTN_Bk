@@ -278,12 +278,15 @@ class OtrosController extends Controller
     {
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
         if (strpos($userAgent, 'Instagram')) {
-            header('Content-type: application/pdf');
-            header('Content-Disposition: inline; filename= FUNT.pdf');
-            header('Content-Transfer-Encoding: binary');
-            header('Accept-Ranges: bytes');
             $file = rtrim(app()->basePath('public/' . 'FUNT.pdf'));
-            @readfile($file);
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="'.basename('FUNT.pdf').'"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize('FUNT.pdf'));
+            readfile($file);
         } else {
             header('Location: https://www.vendetunave.co/');
             exit();
