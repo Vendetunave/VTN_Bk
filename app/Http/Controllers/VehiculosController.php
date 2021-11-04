@@ -146,7 +146,28 @@ class VehiculosController extends Controller
 
         //Tag search Filter
         if ($filtros['q']) {
-            $result->where('vehicles.title', 'LIKE', '%' . $filtros['q'] . '%');
+            $url = "https://suggestqueries.google.com/complete/search?output=toolbar&hl=es&q=" .  str_replace(" ", "%20", $filtros['q'])  . "&gl=co";
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);    // get the url contents
+
+            $data = curl_exec($ch); // execute curl request
+            curl_close($ch);
+
+            $xml = simplexml_load_string($data);
+            $json = json_encode($xml);
+            $array = json_decode($json, TRUE);
+            $resultSuggestion = [$filtros['q']];
+
+            foreach ($array["CompleteSuggestion"] as $item) {
+                array_push($resultSuggestion, $item["suggestion"]["@attributes"]["data"]);
+            }
+
+            $result->Where(function ($query) use ($resultSuggestion) {
+                foreach ($resultSuggestion as $suggestion) {
+                    $query->orWhere('vehicles.title', 'LIKE', '%' . $suggestion . '%');
+                }
+            });
         }
         if ($filtros['ubicacion']) {
             $result->where('UD.nombre', $filtros['ubicacion']);
@@ -652,10 +673,10 @@ class VehiculosController extends Controller
             foreach ($imagesOld as $imageOld) {
                 $encontrada = 0;
                 foreach ($images as $itemImage) {
-                    if($imageOld->id === $itemImage['id']) $encontrada = 1;
+                    if ($imageOld->id === $itemImage['id']) $encontrada = 1;
                 }
 
-                if($encontrada == 0) {
+                if ($encontrada == 0) {
                     \DB::table('imagenes')->where('id', $imageOld->id)->delete();
                 }
             }
