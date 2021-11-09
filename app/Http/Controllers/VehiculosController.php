@@ -154,7 +154,7 @@ class VehiculosController extends Controller
             $data = curl_exec($ch); // execute curl request
             curl_close($ch);
 
-            $xml = simplexml_load_string($data);
+            $xml = simplexml_load_string(utf8_encode($data));
             $json = json_encode($xml);
             $array = json_decode($json, TRUE);
             $resultSuggestion = [$filtros['q']];
