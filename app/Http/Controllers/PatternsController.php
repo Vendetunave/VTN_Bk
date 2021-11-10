@@ -8,10 +8,10 @@ use App\Models\Patterns;
 
 class PatternsController extends Controller
 {
-    public function getPatterns(Request $request)
+    public function getPatterns()
     {
         try {
-            $patterns = Patterns::where('active', 1)->where('slug', $request->slug)->inRandomOrder()->first();
+            $patterns = Patterns::where('active', 1)->inRandomOrder()->first();
 
             $response = [
                 'status' => true,
