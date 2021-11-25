@@ -771,17 +771,6 @@ class VehiculosController extends Controller
             Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
 
             $imageThumb = Image::make(base64_decode($image));
-            $w = $imageThumb->width();
-            $h = $imageThumb->height();
-            if ($w > $h) {
-                $imageThumb->resize(300, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            } else {
-                $imageThumb->resize(null, 300, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            }
 
             $imageThumbJpeg = $imageThumb;
             $imageThumb->encode('webp', 100);
