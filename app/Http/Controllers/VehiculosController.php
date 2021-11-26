@@ -824,12 +824,11 @@ class VehiculosController extends Controller
         try {
             if ($request->hasFile('peritaje')) {
                 $pdfName = uniqid() . '.' . 'pdf';
-                Storage::disk('s3')->put('vendetunave/pdf/peritaje/' . $pdfName, file_get_contents($request->hasFile('peritaje')), 'public');
+                Storage::disk('s3')->put('vendetunave/pdf/peritaje/' . $pdfName, file_get_contents($request->peritaje), 'public');
 
-                $urlBase = 'https://vendetunave.s3.amazonaws.com';
                 $response = [
                     'status' => true,
-                    'file_url' => $urlBase . '/vendetunave/pdf/peritaje/' . $pdfName,
+                    'file_name' => $pdfName,
                 ];
 
                 return $response;
