@@ -101,10 +101,16 @@ class VehiculosController extends Controller
             'q' => $request->query('q') ? $request->query('q') : null
         );
         $selectArray = array(
-            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion', 'vehicles.cilindraje',
-            'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'UC.nombre AS labelCiudad',
-            'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca',
-            'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TP.nombre AS tipoPrecioLabel'
+            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio',
+            'vehicles.ano', 
+            \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
+            \DB::raw('IF(vehicles.confiable = 1, TRUE, FALSE) AS confiable'),
+            \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
+            \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
+            \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
+            \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje'),
+            'UC.nombre AS labelCiudad',
+            'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca'
         );
         if ($filtros['categoria'] === 'motos') {
             $selectArray[] = 'TM.nombre AS tipoMotoLabel';
@@ -304,6 +310,12 @@ class VehiculosController extends Controller
 
         $vehiculo = Vehicles::select(
             'vehicles.*',
+            \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
+            \DB::raw('IF(vehicles.confiable = 1, TRUE, FALSE) AS confiable'),
+            \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
+            \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
+            \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
+            \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje'),
             'C.nombre AS combustibleLabel',
             'CO.nombre AS colorLabel',
             'T.nombre AS transmisionLabel',
@@ -450,6 +462,13 @@ class VehiculosController extends Controller
             $kmVehiculo = str_replace('.', '', $request->kilometraje_vehiculo);
             $cilindrajeVehiculo = str_replace('.', '', $request->cilindraje_vehiculo);
 
+            $peritaje = '';
+            if ($request->hasFile('peritaje')) {
+                $pdfName = uniqid() . '.' . 'pdf';
+                Storage::disk('s3')->put('vendetunave/pdf/peritaje/' . $pdfName, file_get_contents($request->hasFile('peritaje')), 'public');
+                $peritaje = $pdfName;
+            }
+
             $vehiculoId = Vehicles::insertGetId([
                 'title' => $request->titulo_vehiculo,
                 'descripcion' => $request->descripcion_vehiculo,
@@ -479,6 +498,7 @@ class VehiculosController extends Controller
                 'financiacion' => $request->financiacion,
                 'tipo_moto' => ($request->tipo_vehiculo === 5) ? 1 : 0,
                 'blindado' => ($request->blindado_vehiculo == 2) ? 0 : $request->blindado_vehiculo,
+                'peritaje' => $peritaje,
             ]);
 
             $images = $request->images;
