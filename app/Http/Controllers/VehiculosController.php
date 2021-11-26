@@ -102,7 +102,7 @@ class VehiculosController extends Controller
         );
         $selectArray = array(
             'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio',
-            'vehicles.ano', 
+            'vehicles.ano',
             \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
             \DB::raw('IF(vehicles.confiable = 1, TRUE, FALSE) AS confiable'),
             \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
@@ -462,13 +462,6 @@ class VehiculosController extends Controller
             $kmVehiculo = str_replace('.', '', $request->kilometraje_vehiculo);
             $cilindrajeVehiculo = str_replace('.', '', $request->cilindraje_vehiculo);
 
-            $peritaje = '';
-            if ($request->hasFile('peritaje')) {
-                $pdfName = uniqid() . '.' . 'pdf';
-                Storage::disk('s3')->put('vendetunave/pdf/peritaje/' . $pdfName, file_get_contents($request->hasFile('peritaje')), 'public');
-                $peritaje = $pdfName;
-            }
-
             $vehiculoId = Vehicles::insertGetId([
                 'title' => $request->titulo_vehiculo,
                 'descripcion' => $request->descripcion_vehiculo,
@@ -498,7 +491,7 @@ class VehiculosController extends Controller
                 'financiacion' => $request->financiacion,
                 'tipo_moto' => ($request->tipo_vehiculo === 5) ? 1 : 0,
                 'blindado' => ($request->blindado_vehiculo == 2) ? 0 : $request->blindado_vehiculo,
-                'peritaje' => $peritaje,
+                'peritaje' => $request->get('peritaje', null),
             ]);
 
             $images = $request->images;
@@ -823,6 +816,28 @@ class VehiculosController extends Controller
             return $response;
         } catch (\Throwable $th) {
             return ['status' => false];
+        }
+    }
+
+    public function upload_vehicle_peritaje(Request $request)
+    {
+        try {
+            if ($request->hasFile('peritaje')) {
+                $pdfName = uniqid() . '.' . 'pdf';
+                Storage::disk('s3')->put('vendetunave/pdf/peritaje/' . $pdfName, file_get_contents($request->hasFile('peritaje')), 'public');
+
+                $urlBase = 'https://vendetunave.s3.amazonaws.com';
+                $response = [
+                    'status' => true,
+                    'file_url' => $urlBase . '/vendetunave/pdf/peritaje/' . $pdfName,
+                ];
+
+                return $response;
+            }
+
+            return ['status' => false];
+        } catch (\Throwable $th) {
+            return ['status' => $th];
         }
     }
 }
