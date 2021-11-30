@@ -315,7 +315,7 @@ class VehiculosController extends Controller
             \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
             \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
             \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
-            \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje'),
+            \DB::raw('IF(vehicles.peritaje <> "", CONCAT("https://vendetunave.s3.amazonaws.com/vendetunave/pdf/peritaje/", vehicles.peritaje), FALSE) AS peritaje'),
             'C.nombre AS combustibleLabel',
             'CO.nombre AS colorLabel',
             'T.nombre AS transmisionLabel',
@@ -528,6 +528,7 @@ class VehiculosController extends Controller
         try {
             $vehiculo = Vehicles::select(
                 'vehicles.*',
+                \DB::raw('IF(vehicles.peritaje <> "", CONCAT("https://vendetunave.s3.amazonaws.com/vendetunave/pdf/peritaje/", vehicles.peritaje), FALSE) AS peritaje'),
                 'C.nombre AS combustibleLabel',
                 'CO.nombre AS colorLabel',
                 'T.nombre AS transmisionLabel',
@@ -677,7 +678,8 @@ class VehiculosController extends Controller
                 'cilindraje' => (int) $cilindrajeVehiculo,
                 'financiacion' => $request->financiacion,
                 'tipo_moto' => $request->tipo_moto,
-                'republicar' => $republicar
+                'republicar' => $republicar,
+                'peritaje' => $request->peritaje,
             ]);
 
             $images = $request->images;
