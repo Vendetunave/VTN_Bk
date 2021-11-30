@@ -102,7 +102,7 @@ class VehiculosController extends Controller
         );
         $selectArray = array(
             'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio',
-            'vehicles.ano',
+            'vehicles.ano', 'vehicles.kilometraje',
             \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
             \DB::raw('IF(vehicles.confiable = 1, TRUE, FALSE) AS confiable'),
             \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
