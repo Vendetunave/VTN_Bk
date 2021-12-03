@@ -491,7 +491,7 @@ class VehiculosController extends Controller
                 'financiacion' => $request->financiacion,
                 'tipo_moto' => ($request->tipo_vehiculo === 5) ? 1 : 0,
                 'blindado' => ($request->blindado_vehiculo == 2) ? 0 : $request->blindado_vehiculo,
-                'peritaje' => $request->get('peritaje', null),
+                'peritaje' => ($request->peritaje == 0)? null : $request->peritaje,
             ]);
 
             $images = $request->images;
