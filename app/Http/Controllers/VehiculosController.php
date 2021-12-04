@@ -491,7 +491,7 @@ class VehiculosController extends Controller
                 'financiacion' => $request->financiacion,
                 'tipo_moto' => ($request->tipo_vehiculo === 5) ? 1 : 0,
                 'blindado' => ($request->blindado_vehiculo == 2) ? 0 : $request->blindado_vehiculo,
-                'peritaje' => ($request->peritaje == 0)? null : $request->peritaje,
+                'peritaje' => ($request->peritaje == 0) ? null : $request->peritaje,
             ]);
 
             $images = $request->images;
@@ -818,6 +818,727 @@ class VehiculosController extends Controller
             return $response;
         } catch (\Throwable $th) {
             return ['status' => false];
+        }
+    }
+
+    public function get_all_vehicles()
+    {
+        $vehicles = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('activo', 1)
+            ->where('vendido', 0)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $vehiclesApprove = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('activo', 0)
+            ->where('vendido', 0)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $vehiclesPromotional = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('promocion', 1)
+            ->where('aprobado_promocion', 0)
+            ->where('activo', 1)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $response = [
+            'vehicles' => $vehicles,
+            'vehiclesApprove' => $vehiclesApprove,
+            'vehiclesPromotional' => $vehiclesPromotional,
+        ];
+
+        return $response;
+    }
+
+    public function get_by_vehicle(Request $request)
+    {
+        try {
+            $vehiculo = Vehicles::select(
+                'vehicles.*',
+                'C.nombre AS combustibleLabel',
+                'CO.nombre AS colorLabel',
+                'T.nombre AS transmisionLabel',
+                'M.nombre AS modeloLabel',
+                'MA.nombre AS marcaLabel',
+                'MA.id AS marcaId',
+                'TV.nombre AS tipoLabel',
+                'UC.nombre AS ciudadLabel',
+                'UD.nombre AS departamentoLabel',
+                'UD.id AS departamento',
+                'TP.nombre AS tipoPrecioLabel'
+            )
+                ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
+                ->join('combustibles AS C', 'C.id', 'vehicles.combustible')
+                ->join('colores AS CO', 'CO.id', 'vehicles.color')
+                ->join('transmisiones AS T', 'T.id', 'vehicles.transmision')
+                ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+                ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+                ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+                ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
+                ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
+                ->where('vehicles.id', $request->id)
+                ->first();
+
+            $categories = TipoVehiculos::all();
+            $combustibles = Combustibles::all();
+            $colores = Colores::all();
+            $transmisiones = Transmisiones::all();
+            $tipoPrecio = TipoPrecio::all();
+            $departamentos = ubicacion_departamentos::orderBy('nombre')->get();
+            $ciudades = ubicacion_ciudades::all();
+            $marcas = Marcas::all();
+            $modelos = Modelos::all();
+
+            $imagenes = imagenes::select(
+                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".", imagenes.extension) AS url, imagenes.id AS imageId'),
+                'order'
+            )
+                ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
+                ->where('IV.id_vehicle', $request->id)
+                ->orderBy('imagenes.order', 'ASC')
+                ->get();
+
+            $imagesArray = [];
+
+            for ($i = 0; $i < 10; $i++) {
+                $encontrado = false;
+                foreach ($imagenes as $item) {
+                    if (($i + 1) === $item->order) {
+                        array_push($imagesArray, (object) array('url' => $item->url, 'imageId' => $item->imageId, 'order' => $item->order));
+                        $encontrado = true;
+                        break;
+                    }
+                }
+
+                if (!$encontrado) {
+                    array_push($imagesArray, (object) array('url' => '', 'imageId' => '', 'order' => ($i + 1)));
+                }
+            }
+
+            $tipoMoto = TipoMoto::all();
+
+            $result = [
+                'status' => true,
+                'intruder' => false,
+                'categories' => $categories,
+                'combustibles' => $combustibles,
+                'colores' => $colores,
+                'transmisiones' => $transmisiones,
+                'tipoPrecio' => $tipoPrecio,
+                'departamentos' => $departamentos,
+                'ciudades' => $ciudades,
+                'marcas' => $marcas,
+                'tipoMoto' => $tipoMoto,
+                'modelos' => $modelos,
+                'vehiculo' => $vehiculo,
+                'imagenes' => $imagesArray,
+            ];
+
+            return $result;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+            ];
+
+            return $response;
+        }
+    }
+
+    public function update_vehicle_admin(Request $request)
+    {
+        try {
+            $validVehicle = \DB::table('vehicles')->select('precio', 'fecha_publicacion', 'peritaje')->where('id', $request->id)->first();
+            $imagenes = imagenes::select(
+                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".", imagenes.extension) AS url, imagenes.id AS imageId'),
+                'order'
+            )
+                ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
+                ->where('IV.id_vehicle', $request->id)
+                ->orderBy('imagenes.order', 'ASC')
+                ->get();
+
+            $imagesArray = [];
+
+            for ($i = 0; $i < 10; $i++) {
+                $encontrado = false;
+                foreach ($imagenes as $item) {
+                    if (($i + 1) === $item->order) {
+                        array_push($imagesArray, (object) array('url' => $item->url, 'imageId' => $item->imageId, 'order' => $item->order));
+                        $encontrado = true;
+                        break;
+                    }
+                }
+
+                if (!$encontrado) {
+                    array_push($imagesArray, (object) array('url' => '', 'imageId' => '', 'order' => ($i + 1)));
+                }
+            }
+            $fechaPublicacion = $validVehicle->fecha_publicacion;
+
+            if ((int) $validVehicle->precio !== (int) $request->precio) {
+                $fechaPublicacion = date("Y-m-d H:i:s");
+            }
+
+            \DB::table('vehicles')->where('id', $request->id)->update([
+                'title' => $request->title,
+                'descripcion' => $request->descripcion,
+                'condicion' => $request->condicion,
+                'precio' => (int) $request->precio,
+                'tipo_precio' => (int) $request->tipo_precio,
+                'kilometraje' => (int) $request->kilometraje,
+                'cilindraje' => (int) $request->cilindraje,
+                'contacto' => (int) $request->contacto,
+                'combustible' => $request->combustible,
+                'color' => $request->color,
+                'transmision' => $request->transmision,
+                'tipo_vehiculo' => $request->tipo_vehiculo,
+                'modelo_id' => $request->modelo_id,
+                'ano' => $request->ano,
+                'financiacion' => $request->financiacion,
+                'promocion' => $request->promocion,
+                'permuta' => $request->permuta,
+                'blindado' => $request->blindado,
+                'ciudad_id' => $request->ciudad_id,
+                'confiable' => $request->confiable,
+                'fecha_publicacion' => $fechaPublicacion,
+                'republicar' => 0
+            ]);
+
+            if ($request->hasFile('image1')) {
+                $image = $request->image1;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 1,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[0]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[0]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[0]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image2')) {
+                $image = $request->image2;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 2,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[1]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[1]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[1]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image3')) {
+                $image = $request->image3;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 3,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[2]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[2]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[2]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image4')) {
+                $image = $request->image4;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 4,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[3]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[3]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[3]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image5')) {
+                $image = $request->image5;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 5,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[4]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[4]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[4]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image6')) {
+                $image = $request->image6;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 6,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[5]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[5]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[5]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image7')) {
+                $image = $request->image7;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 7,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[6]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[6]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[6]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image8')) {
+                $image = $request->image8;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 8,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[7]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[7]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[7]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image9')) {
+                $image = $request->image9;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 9,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[8]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[8]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[8]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image10')) {
+                $image = $request->image10;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 10,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[9]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[9]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[9]->imageId)->delete();
+                }
+            }
+
+            if ($request->hasFile('peritaje')) {
+                $pdfName = uniqid() . '.' . 'pdf';
+                Storage::disk('s3')->put('vendetunave/pdf/peritaje/' . $pdfName, file_get_contents($request->peritaje), 'public');
+
+                \DB::table('vehicles')->where('id', $request->id)->update([
+                    'peritaje' => $pdfName,
+                ]);
+            }
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos actualizados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function dependable_vehicle(Request $request)
+    {
+        $vehiculo = Vehicles::where('id', $request->id)->first();
+
+        \DB::table('vehicles')->where('id', $request->id)
+            ->update(['confiable' => ($vehiculo->confiable) ? 0 : 1]);
+
+        $result = [
+            'status' => true,
+            'dependable' => ($vehiculo->confiable) ? false : true
+        ];
+
+        return $result;
+    }
+
+    public function approve_vehicle(Request $request)
+    {
+        if ($request->approve) {
+            $validVehicle = Vehicles::select('republicar', 'fecha_publicacion')->where('id', $request->id)->first();
+
+            \DB::table('vehicles')->where('id', $request->id)->update([
+                'activo' => 1,
+                'fecha_publicacion' => ($validVehicle->republicar === 1) ? date("Y-m-d H:i:s") : $validVehicle->fecha_publicacion
+            ]);
+        } else {
+            \DB::table('vehicles')
+                ->where('id', $request->id)
+                ->update(['activo' => 2]);
+        }
+
+        $vehicles = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('activo', 1)
+            ->where('vendido', 0)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $vehiclesApprove = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('activo', 0)
+            ->where('vendido', 0)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $vehiclesPromotional = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('promocion', 1)
+            ->where('aprobado_promocion', 0)
+            ->where('activo', 1)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $response = [
+            'status' => true,
+            'message' => 'Datos actualizados correctamente!',
+            'vehicles' => $vehicles,
+            'vehiclesApprove' => $vehiclesApprove,
+            'vehiclesPromotional' => $vehiclesPromotional,
+        ];
+
+        return $response;
+    }
+
+    public function approve_promotion(Request $request)
+    {
+        if ($request->approve_promotion) {
+            \DB::table('vehicles')->where('id', $request->id)
+                ->update(['aprobado_promocion' => 1]);
+        } else {
+            \DB::table('vehicles')->where('id', $request->id)
+                ->update(['aprobado_promocion' => 2, 'promocion' => 0]);
+        }
+
+        $vehicles = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('activo', 1)
+            ->where('vendido', 0)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $vehiclesApprove = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('activo', 0)
+            ->where('vendido', 0)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $vehiclesPromotional = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+            ->where('promocion', 1)
+            ->where('aprobado_promocion', 0)
+            ->where('activo', 1)
+            ->groupBy('vehicles.id')
+            ->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->get();
+
+        $response = [
+            'status' => true,
+            'message' => 'Datos actualizados correctamente!',
+            'vehicles' => $vehicles,
+            'vehiclesApprove' => $vehiclesApprove,
+            'vehiclesPromotional' => $vehiclesPromotional,
+        ];
+
+        return $response;
+    }
+
+    public function remove_vehicle_admin(Request $request)
+    {
+        try {
+            $images = Imagenes_vehiculo::select('id_image')->where('id_vehicle', $request->id)->get();
+            Busquedas::where('vehiculo_id', $request->id)->delete();
+            Favoritos::where('vehiculo_id', $request->id)->delete();
+            Vehicles::where('id', $request->id)->delete();
+            Imagenes_vehiculo::where('id_vehicle', $request->id)->delete();
+
+            foreach ($images as $image) {
+                imagenes::where('id', $image->id_image)->delete();
+            }
+
+            $vehicles = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+                ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+                ->join('imagenes AS I', 'I.id', 'IV.id_image')
+                ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+                ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+                ->where('activo', 1)
+                ->where('vendido', 0)
+                ->groupBy('vehicles.id')
+                ->orderBy('vehicles.fecha_creacion', 'DESC')
+                ->get();
+
+            $vehiclesApprove = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+                ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+                ->join('imagenes AS I', 'I.id', 'IV.id_image')
+                ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+                ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+                ->where('activo', 0)
+                ->where('vendido', 0)
+                ->groupBy('vehicles.id')
+                ->orderBy('vehicles.fecha_creacion', 'DESC')
+                ->get();
+
+            $vehiclesPromotional = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+                ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+                ->join('imagenes AS I', 'I.id', 'IV.id_image')
+                ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+                ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+                ->where('promocion', 1)
+                ->where('aprobado_promocion', 0)
+                ->where('activo', 1)
+                ->groupBy('vehicles.id')
+                ->orderBy('vehicles.fecha_creacion', 'DESC')
+                ->get();
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos actualizados correctamente!',
+                'vehicles' => $vehicles,
+                'vehiclesApprove' => $vehiclesApprove,
+                'vehiclesPromotional' => $vehiclesPromotional,
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
         }
     }
 

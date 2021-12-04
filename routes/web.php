@@ -51,6 +51,8 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
+    $router->post('login-admin', 'AuthController@login_admin');
+
     $router->get('sitemap', 'OtrosController@sitemap');
     $router->get('in-app-browser/{slug}', 'OtrosController@inAppBrowser');
 
@@ -93,4 +95,60 @@ $router->group(['prefix' => 'api'], function () use ($router){
     $router->post('documento-compra-venta', 'DocumentsController@salesPurchaseDocument');
     $router->post('documento-mandato', 'DocumentsController@mandateDocument');
     $router->post('documento-tramite', 'DocumentsController@procedureDocument');
+});
+
+$router->group(['prefix' => 'admin',  'middleware' => 'admin'], function () use ($router){
+    $router->get('users', 'OtrosController@get_all_users');
+    $router->get('users/{id}', 'OtrosController@get_by_user');
+    $router->post('create-user', 'OtrosController@create_user');
+    $router->put('users', 'OtrosController@updated_user');
+    $router->put('active-user', 'OtrosController@active_user');
+    $router->put('locked-user', 'OtrosController@bloqued_user');
+    $router->get('roles-user', 'OtrosController@get_roles');
+
+    $router->get('vehicles', 'VehiculosController@get_all_vehicles');
+    $router->get('form-updated-vehicle/{id}', 'VehiculosController@get_by_vehicle');
+    $router->post('updated-vehicle', 'VehiculosController@update_vehicle_admin');
+    $router->put('dependable-vehicle', 'VehiculosController@dependable_vehicle');
+    $router->post('approve-vehicle', 'VehiculosController@approve_vehicle');
+    $router->post('approve-promotion-vehicle', 'VehiculosController@approve_promotion');
+    $router->post('remove-vehicle-admin', 'VehiculosController@remove_vehicle_admin');
+
+    $router->get('technical-sheets', 'FichaTecnicaController@get_all_technical_sheets');
+    $router->get('form-updated-technical-sheets/{id}', 'FichaTecnicaController@get_by_technical_sheets');
+    $router->get('form-technical-sheets', 'FichaTecnicaController@form_technical_sheets');
+    $router->post('create-technical-sheets', 'FichaTecnicaController@create_technical_sheets');
+    $router->post('updated-technical-sheets', 'FichaTecnicaController@update_technical_sheets');
+    $router->put('active-technical-sheets', 'FichaTecnicaController@inactivate');
+    $router->post('delete-technical-sheets', 'FichaTecnicaController@delete');
+
+    $router->get('dealerships', 'OtrosController@get_all_dealerships');
+    $router->post('create-dealerships', 'OtrosController@create_dealerships');
+    $router->get('form-update-dealerships/{id}', 'OtrosController@get_by_dealerships');
+    $router->post('update-dealerships', 'OtrosController@update_dealerships');
+    $router->post('delete-dealerships', 'OtrosController@delete_dealerships');
+
+    $router->get('community', 'ComunidadController@get_all_questions');
+    $router->get('news', 'OtrosController@get_all_news'); //crear
+
+    $router->get('services', 'OtrosController@get_all_services');
+    $router->post('create-service', 'OtrosController@create_services');
+    $router->get('form-update-service/{id}', 'OtrosController@get_by_services');
+    $router->post('update-service', 'OtrosController@update_services');
+    $router->post('delete-services', 'OtrosController@delete_services');
+    
+    $router->get('promotion', 'PatternsController@get_all_promotion');
+    $router->post('create-promotion', 'PatternsController@create_promotion');
+    $router->get('form-update-promotion/{id}', 'PatternsController@get_by_promotion');
+    $router->post('update-promotion', 'PatternsController@update_promotion');
+    $router->put('active-promotion', 'PatternsController@inactivate');
+    $router->post('delete-promotion', 'PatternsController@delete');
+
+    $router->get('configs', 'ConfiguracionesController@configs');
+    $router->post('update-configs', 'ConfiguracionesController@update_configs');
+    $router->get('permissions', 'ConfiguracionesController@permissions');
+    $router->get('form-update-permissions/{id}', 'ConfiguracionesController@get_by_permissions');
+    $router->get('form-create-permissions', 'ConfiguracionesController@form_permissions');
+    $router->post('update-permissions', 'ConfiguracionesController@update_permissions');
+    $router->post('create-permissions', 'ConfiguracionesController@create_permissions');
 });
