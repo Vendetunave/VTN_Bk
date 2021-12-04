@@ -194,4 +194,34 @@ class ComunidadController extends Controller
             return $response;
         }
     }
+
+    public function get_all_questions()
+    {
+        $approvedQuestions = Pregunta::select(
+            'pregunta.id', 'pregunta.titulo',
+            \DB::raw('COUNT(R.id) AS repuestas'),
+        )
+        ->join('respuestas AS R', 'R.pregunta_id', 'pregunta.id')
+        ->where('aprobado', 1)
+        ->groupBy('pregunta.id')
+        ->orderBy('pregunta.fecha', 'DESC')
+        ->get();
+
+        $pendingQuestions = Pregunta::select(
+            'pregunta.id', 'pregunta.titulo',
+            \DB::raw('COUNT(R.id) AS repuestas'),
+        )
+        ->join('respuestas AS R', 'R.pregunta_id', 'pregunta.id')
+        ->where('aprobado', 0)
+        ->groupBy('pregunta.id')
+        ->orderBy('pregunta.fecha', 'DESC')
+        ->get();
+
+        $response = [
+            'approved_questions' => $approvedQuestions,
+            'pending_questions' => $pendingQuestions
+        ];
+
+        return $response;
+    }
 }

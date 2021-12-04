@@ -5,18 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\Users;
+use App\Models\Noticias;
 use App\Models\Servicios;
 use App\Models\Dealerships;
+use App\Models\DealershipsBrands;
 use App\Models\ubicacion_ciudades;
 use App\Models\Marcas;
 use App\Models\tokens;
+use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManagerStatic as Image;
 
 use Illuminate\Support\Facades\Mail;
 use App\Models\Config;
 use App\Models\DataSheet;
 use App\Models\financiacion;
 use App\Models\Pregunta;
+use App\Models\Roles;
 use App\Models\Vehicles;
+use App\Models\TiposServicios;
 use Illuminate\Support\Facades\Hash;
 
 class OtrosController extends Controller
@@ -281,12 +288,469 @@ class OtrosController extends Controller
             $file = rtrim(app()->basePath('public/' . 'FUNT.pdf'));
             header('Content-Description: File Transfer');
             header("Content-type: application/pdf");
-            header('Content-Disposition: attachment; filename="'.basename('FUNT.pdf').'"');
+            header('Content-Disposition: attachment; filename="' . basename('FUNT.pdf') . '"');
             header('Content-Length: ' . filesize('FUNT.pdf'));
             readfile($file);
         } else {
             header('Location: https://www.vendetunave.co/');
             exit();
         }
+    }
+
+    public function get_all_users(Request $request)
+    {
+        $users = User::select('users.id', 'users.nombre', 'email', 'R.nombre AS rol', 'activo', 'locked')
+            ->join('roles AS R', 'R.id', 'rol_id')
+            ->orderBy('users.id', 'ASC')
+            ->get();
+
+
+        $response = [
+            'users' => $users,
+        ];
+
+        return $response;
+    }
+
+    public function get_by_user($id)
+    {
+        $users = User::select(
+            'id',
+            'nombre',
+            'email',
+            'rol_id',
+            'activo',
+            'locked',
+            'telefono',
+            'genero',
+            'fecha_nacimiento',
+            'image'
+        )->where('id', $id)->first();
+        $roles = Roles::all();
+
+        $response = [
+            'users' => $users,
+            'roles' => $roles,
+        ];
+
+        return $response;
+    }
+
+    public function get_roles()
+    {
+        $roles = Roles::all();
+
+        $response = [
+            'roles' => $roles,
+        ];
+
+        return $response;
+    }
+
+    public function create_user(Request $request)
+    {
+        try {
+            $userEmail = Users::where('email', $request->email)->first();
+            if (empty($userEmail)) {
+                \DB::table('users')->insert([
+                    'nombre' => $request->nombre,
+                    'email' => $request->email,
+                    'telefono' => $request->telefono,
+                    'genero' => $request->genero,
+                    'fecha_nacimiento' => $request->fecha_nacimiento,
+                    'rol_id' => $request->rol_id,
+                    'password' => Hash::make($request->password),
+                    'password_encrypt' => false,
+                ]);
+            }
+
+            $response = [
+                'status' => (empty($userEmail)) ? true : false,
+                'message' => (empty($userEmail)) ? 'Datos creados correctamente' : 'Ya existe un usuario con ese correo'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'state' => false,
+                'message' => $th
+            ];
+        }
+    }
+
+    public function updated_user(Request $request)
+    {
+        try {
+            $userInfo = Users::where('id', $request->id)->first();
+            $userEmail = [];
+            if ($userInfo->email != $request->email) {
+                $userEmail = Users::where('email', $request->email)->get();
+            }
+
+            \DB::table('users')->where('id', $request->id)
+                ->update([
+                    'nombre' => $request->nombre,
+                    'email' => (COUNT($userEmail) > 0) ? $userInfo->email : $request->email,
+                    'telefono' => $request->telefono,
+                    'genero' => $request->genero,
+                    'fecha_nacimiento' => $request->fecha_nacimiento,
+                    'rol_id' => $request->rol_id,
+                ]);
+
+            $response = [
+                'status' => true,
+                'message' => (COUNT($userEmail) > 0) ? 'No se actualizo el email por ya se encuentra en uso' : 'Datos actualizado correctamente'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'state' => false,
+                'message' => $th
+            ];
+        }
+    }
+
+    public function active_user(Request $request)
+    {
+        $user = Users::where('id', $request->id)->first();
+
+        \DB::table('users')->where('id', $request->id)
+            ->update(['activo' => ($user->activo) ? 0 : 1]);
+
+        $result = [
+            'status' => true,
+            'active' => ($user->activo) ? false : true
+        ];
+
+        return $result;
+    }
+
+    public function bloqued_user(Request $request)
+    {
+        $user = Users::where('id', $request->id)->first();
+
+        \DB::table('users')->where('id', $request->id)
+            ->update(['locked' => ($user->locked) ? 0 : 1]);
+
+        $result = [
+            'status' => true,
+            'locked' => ($user->locked) ? false : true
+        ];
+
+        return $result;
+    }
+
+    public function get_all_news()
+    {
+        $news = Noticias::select('id', 'title', 'description')->get();
+
+        $response = [
+            'news' => $news,
+        ];
+
+        return $response;
+    }
+
+    public function get_all_services()
+    {
+        $services = Servicios::select('servicios.id', 'servicios.nombre', 'direccion', 'telefono', 'TS.nombre AS servicio')
+            ->join('tipos_servicio AS TS', 'TS.id', 'servicios.tipo_servicio_id')
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $response = [
+            'services' => $services,
+        ];
+
+        return $response;
+    }
+
+    public function get_by_services(Request $request)
+    {
+        $services = Servicios::where('id', $request->id)->first();
+        $tiposServicios = TiposServicios::all();
+        $ciudades = ubicacion_ciudades::orderBy('nombre')->where('indicativo', 1)->get();
+
+        $response = [
+            'services' => $services,
+            'tipos_servicios' => $tiposServicios,
+            'ciudades' => $ciudades
+        ];
+        return $response;
+    }
+
+    public function create_services(Request $request)
+    {
+        try {
+            if ($request->hasFile('image1')) {
+                $file = $request->file('image1');
+                $extension = 'webp';
+                $name = uniqid();
+                $filenametostore = $name . '.' . $extension;
+
+                $imageConvert = (string) Image::make($file)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/servicios-productos/' . $name . '.webp', $imageConvert, 'public');
+                Servicios::insert([
+                    'nombre' => $request->title,
+                    'descripcion' => $request->description,
+                    'ciudad_id' => $request->city,
+                    'direccion' => $request->address,
+                    'tipo_servicio_id' => $request->type,
+                    'url' => $request->link,
+                    'telefono' => $request->phone,
+                    'image' => 'https://vendetunave.s3.amazonaws.com/vendetunave/images/servicios-productos/' . $filenametostore
+                ]);
+
+                $response = [
+                    'status' => true,
+                    'message' => 'Datos creados correctamente!'
+                ];
+            } else {
+                $response = [
+                    'status' => false,
+                    'message' => 'Imagen invalida!'
+                ];
+            }
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function update_services(Request $request)
+    {
+        try {
+            \DB::table('servicios')->where('id', $request->id)->update([
+                'nombre' => $request->nombre,
+                'descripcion' => $request->descripcion,
+                'ciudad_id' => $request->ciudad_id,
+                'direccion' => $request->direccion,
+                'tipo_servicio_id' => $request->tipo_servicio_id,
+                'url' => $request->url,
+                'telefono' => $request->telefono,
+            ]);
+
+            if ($request->hasFile('image1')) {
+                $file = $request->file('image1');
+                $extension = 'webp';
+                $name = uniqid();
+                $filenametostore = $name . '.' . $extension;
+
+                $imageConvert = (string) Image::make($file)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/servicios-productos/' . $name . '.webp', $imageConvert, 'public');
+                \DB::table('servicios')->where('id', $request->id)->update([
+                    'image' => 'https://vendetunave.s3.amazonaws.com/vendetunave/images/servicios-productos/' . $filenametostore
+                ]);
+            }
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos creados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function delete_services(Request $request)
+    {
+        Servicios::where('id', $request->id)->delete();
+        $services = Servicios::select('servicios.id', 'servicios.nombre', 'direccion', 'telefono', 'TS.nombre AS servicio')
+            ->join('tipos_servicio AS TS', 'TS.id', 'servicios.tipo_servicio_id')
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $response = [
+            'status' => true,
+            'message' => 'Se elimino la servicio!',
+            'services' => $services,
+
+        ];
+        return $response;
+    }
+
+    public function get_all_dealerships()
+    {
+        $dealerships = Dealerships::select('id', 'name', 'address', 'phone', \DB::raw('IF(type_vehicle = 1, "Nuevo" , "Usado") AS type'))
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $response = [
+            'dealerships' => $dealerships,
+        ];
+
+        return $response;
+    }
+
+    public function get_by_dealerships(Request $request)
+    {
+        $dealerships = Dealerships::select('dealerships.*', \DB::raw('IF(type_vehicle = 1, "Nuevo" , "Usado") AS type'))
+            ->where('id', $request->id)
+            ->first();
+
+        $dealershipsBrands = DealershipsBrands::select('M.nombre')
+            ->join('marcas AS M', 'M.id', 'dealerships_brands.brand_id')
+            ->where('dealership_id', $request->id)
+            ->get();
+        $arrayDealerships = [];
+        foreach ($dealershipsBrands as $value) {
+            array_push($arrayDealerships, $value->nombre);
+        }
+        $marcas = Marcas::select('marcas.id', 'marcas.nombre', 'TV.nombre AS nombrePadre')
+            ->join('tipo_vehiculos AS TV', 'TV.id', 'marcas.categoria_id')
+            ->get();
+        $ciudades = ubicacion_ciudades::orderBy('nombre')->where('indicativo', 1)->get();
+
+        $response = [
+            'dealerships' => $dealerships,
+            'dealerships_brands' => $arrayDealerships,
+            'marcas' => $marcas,
+            'ciudades' => $ciudades
+        ];
+
+        return $response;
+    }
+
+    public function create_dealerships(Request $request)
+    {
+        try {
+            if ($request->hasFile('image1')) {
+                $file = $request->file('image1');
+                $extension = 'webp';
+                $name = uniqid();
+                $filenametostore = $name . '.' . $extension;
+
+                $imageConvert = (string) Image::make($file)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/dealerships/' . $name . '.webp', $imageConvert, 'public');
+
+                $dealerships = Dealerships::insertGetId([
+                    'name' => $request->title,
+                    'description' => $request->description,
+                    'city_id' => $request->city,
+                    'address' => $request->address,
+                    'type_vehicle' => $request->type,
+                    'latitude' => $request->lat,
+                    'longitude' => $request->lon,
+                    'phone' => $request->phone,
+                    'image' => 'https://vendetunave.s3.amazonaws.com/vendetunave/images/dealerships/' . $filenametostore
+                ]);
+
+                if ($request->marks) {
+                    $marcas = explode(',', $request->marks);
+
+                    foreach ($marcas as $marca) {
+                        $marcaQuery = Marcas::where('nombre', $marca)->first();
+
+                        DealershipsBrands::insert([
+                            'dealership_id' => $dealerships,
+                            'brand_id' => $marcaQuery->id,
+                        ]);
+                    }
+                }
+
+                $response = [
+                    'status' => true,
+                    'message' => 'Datos creados correctamente!'
+                ];
+            } else {
+                $response = [
+                    'status' => false,
+                    'message' => 'Imagen invalida!'
+                ];
+            }
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => $th
+            ];
+        }
+    }
+
+    public function update_dealerships(Request $request)
+    {
+        try {
+            $dealerships = \DB::table('dealerships')->where('id', $request->id)->update([
+                'name' => $request->name,
+                'description' => $request->description,
+                'city_id' => $request->city_id,
+                'address' => $request->address,
+                'type_vehicle' => $request->type_vehicle,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'phone' => $request->phone,
+            ]);
+
+            if ($request->marks) {
+                DealershipsBrands::where('dealership_id', $request->id)->delete();
+                $marcas = explode(',', $request->marks);
+
+                foreach ($marcas as $marca) {
+                    $marcaQuery = Marcas::where('nombre', $marca)->first();
+
+                    DealershipsBrands::insert([
+                        'dealership_id' => $request->id,
+                        'brand_id' => $marcaQuery->id,
+                    ]);
+                }
+            }
+
+            if ($request->hasFile('image1')) {
+                $file = $request->file('image1');
+                $extension = 'webp';
+                $name = uniqid();
+                $filenametostore = $name . '.' . $extension;
+
+                $imageConvert = (string) Image::make($file)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/dealerships/' . $name . '.webp', $imageConvert, 'public');
+
+                $dealerships = \DB::table('dealerships')->where('id', $request->id)->update([
+                    'image' => 'https://vendetunave.s3.amazonaws.com/vendetunave/images/dealerships/' . $filenametostore
+                ]);
+            }
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos creados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => $th
+            ];
+        }
+    }
+
+    public function delete_dealerships(Request $request)
+    {
+        Dealerships::where('id', $request->id)->delete();
+        DealershipsBrands::where('dealership_id', $request->id)->delete();
+        $dealerships = Dealerships::select('id', 'name', 'address', 'phone', \DB::raw('IF(type_vehicle = 1, "Nuevo" , "Usado") AS type'))
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $response = [
+            'status' => true,
+            'dealerships' => $dealerships,
+            'message' => 'Se elimino la concesionario!'
+        ];
+        return $response;
     }
 }
