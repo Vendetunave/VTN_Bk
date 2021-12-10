@@ -452,6 +452,90 @@ class OtrosController extends Controller
         return $response;
     }
 
+    public function delete_news(Request $request)
+    {
+        try {
+            \DB::table('noticias')->where('id', $request->id)->delete();
+            $news = Noticias::select('id', 'title', 'description')->get();
+
+            $response = [
+                'status' => true,
+                'news' => $news,
+            ];
+    
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+        
+    }
+
+    public function update_news(Request $request)
+    {
+        try {
+            \DB::table('noticias')->where('id', $request->id)->update([
+                'title' => $request->title,
+                'description' => $request->description,
+                'link' => $request->link,
+            ]);
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos actualizados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function create_news(Request $request)
+    {
+        try {
+            Noticias::insert([
+                'title' => $request->title,
+                'description' => $request->description,
+                'link' => $request->link,
+            ]);
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos creados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function get_by_news(Request $request)
+    {
+        $news = Noticias::select('id', 'title', 'description', 'link')->where('id', $request->id)->first();
+
+        $response = [
+            'news' => $news,
+        ];
+
+        return $response;
+    }
+
     public function get_all_services()
     {
         $services = Servicios::select('servicios.id', 'servicios.nombre', 'direccion', 'telefono', 'TS.nombre AS servicio')

@@ -214,4 +214,182 @@ class ConfiguracionesController extends Controller
             return $response;
         }
     }
+
+    public function get_by_marks(Request $request)
+    {
+        $marca = '';
+        if ($request->id != 0) {
+            $marca = Marcas::select('id', 'nombre', 'categoria_id')->where('id', $request->id)->first();
+        }
+        $categorias = TipoVehiculos::all();
+
+        $response = [
+            'marca' => $marca,
+            'categorias' => $categorias
+        ];
+
+        return $response;
+    }
+
+    public function update_marks(Request $request)
+    {
+        try {
+            \DB::table('marcas')->where('id', $request->id)->update([
+                'nombre' => $request->nombre,
+                'categoria_id' => $request->categoria_id,
+            ]);
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos actualizados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function create_marks(Request $request)
+    {
+        try {
+            Marcas::insert([
+                'nombre' => $request->nombre,
+                'categoria_id' => $request->categoria_id,
+            ]);
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos creados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function delete_marks(Request $request)
+    {
+        \DB::table('modelos')->where('marca_id', $request->id)->delete();
+        \DB::table('marcas')->where('id', $request->id)->delete();
+
+        $marcas = Marcas::select('marcas.id', 'marcas.nombre', 'TV.nombre AS nombrePadre')
+            ->join('tipo_vehiculos AS TV', 'TV.id', 'marcas.categoria_id')
+            ->get();
+        $modelos = Modelos::select('modelos.id', 'modelos.nombre', 'M.nombre AS nombrePadre')
+            ->join('marcas AS M', 'M.id', 'modelos.marca_id')
+            ->get();
+
+        $response = [
+            'status' => true,
+            'marcas' => $marcas,
+            'modelos' => $modelos,
+        ];
+
+        return $response;
+    }
+
+    public function get_by_models(Request $request)
+    {
+        $modelo = '';
+        $marcas = [];
+        if ($request->id != 0) {
+            $modelo = Modelos::select('modelos.id', 'modelos.nombre', 'modelos.marca_id', 'M.categoria_id')
+            ->join('marcas AS M', 'M.id', 'modelos.marca_id')
+            ->where('modelos.id', $request->id)
+            ->first();
+            $marcas = Marcas::where('categoria_id', $modelo->categoria_id)->get();
+        }
+        
+        $marcasAll = Marcas::all();
+        $categorias = TipoVehiculos::all();
+
+        $response = [
+            'modelo' => $modelo,
+            'marcas' => $marcas,
+            'marcasAll' => $marcasAll,
+            'categorias' => $categorias
+        ];
+
+        return $response;
+    }
+
+    public function create_models(Request $request)
+    {
+        try {
+            Modelos::insert([
+                'marca_id' => $request->marca_id,
+                'nombre' => $request->nombre,
+            ]);
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos creados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function update_models(Request $request)
+    {
+        try {
+            \DB::table('modelos')->where('id', $request->id)->update([
+                'marca_id' => $request->marca_id,
+                'nombre' => $request->nombre,
+            ]);
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos creados correctamente!'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th)
+            ];
+
+            return $response;
+        }
+    }
+
+    public function delete_models(Request $request)
+    {
+        \DB::table('modelos')->where('id', $request->id)->delete();
+
+        $marcas = Marcas::select('marcas.id', 'marcas.nombre', 'TV.nombre AS nombrePadre')
+            ->join('tipo_vehiculos AS TV', 'TV.id', 'marcas.categoria_id')
+            ->get();
+        $modelos = Modelos::select('modelos.id', 'modelos.nombre', 'M.nombre AS nombrePadre')
+            ->join('marcas AS M', 'M.id', 'modelos.marca_id')
+            ->get();
+
+        $response = [
+            'status' => true,
+            'marcas' => $marcas,
+            'modelos' => $modelos,
+        ];
+
+        return $response;
+    }
 }

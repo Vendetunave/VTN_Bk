@@ -129,7 +129,12 @@ $router->group(['prefix' => 'admin',  'middleware' => 'admin'], function () use 
     $router->post('delete-dealerships', 'OtrosController@delete_dealerships');
 
     $router->get('community', 'ComunidadController@get_all_questions');
-    $router->get('news', 'OtrosController@get_all_news'); //crear
+
+    $router->get('news', 'OtrosController@get_all_news');
+    $router->post('create-news', 'OtrosController@create_news');
+    $router->get('form-new/{id}', 'OtrosController@get_by_news');
+    $router->put('update-news', 'OtrosController@update_news');
+    $router->post('delete-news', 'OtrosController@delete_news');
 
     $router->get('services', 'OtrosController@get_all_services');
     $router->post('create-service', 'OtrosController@create_services');
@@ -151,4 +156,14 @@ $router->group(['prefix' => 'admin',  'middleware' => 'admin'], function () use 
     $router->get('form-create-permissions', 'ConfiguracionesController@form_permissions');
     $router->post('update-permissions', 'ConfiguracionesController@update_permissions');
     $router->post('create-permissions', 'ConfiguracionesController@create_permissions');
+
+    $router->get('form-marks/{id}', 'ConfiguracionesController@get_by_marks');
+    $router->post('create-mark', 'ConfiguracionesController@create_marks');
+    $router->put('update-mark', 'ConfiguracionesController@update_marks');
+    $router->post('delete-mark', 'ConfiguracionesController@delete_marks');
+
+    $router->get('form-models/{id}', 'ConfiguracionesController@get_by_models');
+    $router->post('create-model', 'ConfiguracionesController@create_models');
+    $router->put('update-model', 'ConfiguracionesController@update_models');
+    $router->post('delete-model', 'ConfiguracionesController@delete_models');
 });
