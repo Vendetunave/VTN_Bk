@@ -823,7 +823,7 @@ class VehiculosController extends Controller
 
     public function get_all_vehicles()
     {
-        $vehicles = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+        $vehicles = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
             ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
             ->join('imagenes AS I', 'I.id', 'IV.id_image')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
@@ -834,7 +834,7 @@ class VehiculosController extends Controller
             ->orderBy('vehicles.fecha_creacion', 'DESC')
             ->get();
 
-        $vehiclesApprove = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+        $vehiclesApprove = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
             ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
             ->join('imagenes AS I', 'I.id', 'IV.id_image')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
@@ -845,7 +845,7 @@ class VehiculosController extends Controller
             ->orderBy('vehicles.fecha_creacion', 'DESC')
             ->get();
 
-        $vehiclesPromotional = Vehicles::select('vehicles.id', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+        $vehiclesPromotional = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
             ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
             ->join('imagenes AS I', 'I.id', 'IV.id_image')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')

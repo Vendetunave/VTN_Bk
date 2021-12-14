@@ -31,31 +31,30 @@ class ComunidadController extends Controller
             'q' => $request->query('q') ? $request->query('q') : null
         );
 
-        $preguntas = Pregunta::select( 'pregunta.*', \DB::raw('COUNT(R.id) AS repuestas'), \DB::raw('MAX(R.fecha) AS ult_respuesta') )
+        $preguntas = Pregunta::select('pregunta.*', \DB::raw('COUNT(R.id) AS repuestas'), \DB::raw('MAX(R.fecha) AS ult_respuesta'))
             ->leftJoin('respuestas AS R', 'R.pregunta_id', 'pregunta.id')
             ->where('pregunta.aprobado', 1);
 
-            if($filtros['q']){
-                $search = $filtros['q'];
-                $preguntas->Where(function ($query) use ($search) {
-                    $query->orWhere('pregunta.titulo', 'LIKE', '%' . $search . '%');
-                    $query->orWhere('pregunta.descripcion', 'LIKE', '%' . $search . '%');
-                    $query->orWhere('R.respuesta', 'LIKE', '%' . $search . '%');
-                });
-
-            }
+        if ($filtros['q']) {
+            $search = $filtros['q'];
+            $preguntas->Where(function ($query) use ($search) {
+                $query->orWhere('pregunta.titulo', 'LIKE', '%' . $search . '%');
+                $query->orWhere('pregunta.descripcion', 'LIKE', '%' . $search . '%');
+                $query->orWhere('R.respuesta', 'LIKE', '%' . $search . '%');
+            });
+        }
 
         $total_records = count($preguntas->groupBy('pregunta.id')->get());
         $preguntas = $preguntas->groupBy('pregunta.id')
             ->orderBy('pregunta.fecha', 'DESC')
             ->offset(($filtros['page'] - 1) * 10)->limit(10)->get();
 
-        $tags = Tags::select( 'tags.id', 'tags.tag', 'PT.pregunta_id' )
+        $tags = Tags::select('tags.id', 'tags.tag', 'PT.pregunta_id')
             ->leftJoin('preguntas_tags  AS PT', 'PT.tag_id', 'tags.id');
-            foreach ($preguntas as $pregunta) {
-                $tags->orWhere('PT.pregunta_id', $pregunta->id);
-            }
-            $tags = $tags->get();
+        foreach ($preguntas as $pregunta) {
+            $tags->orWhere('PT.pregunta_id', $pregunta->id);
+        }
+        $tags = $tags->get();
 
         $result = [
             'page' => $filtros['page'],
@@ -65,9 +64,9 @@ class ComunidadController extends Controller
             'total_records' => $total_records
         ];
         return $result;
-        
     }
-    public function parse_id($string){
+    public function parse_id($string)
+    {
         $id = str_replace(
             array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä'),
             array('a', 'a', 'a', 'a', 'a', 'A', 'A', 'A', 'A'),
@@ -100,20 +99,23 @@ class ComunidadController extends Controller
         );
         //Esta parte se encarga de eliminar cualquier caracter extraño
         $id = str_replace(
-            array("¨", "º", "~",
-                 "#", "@", "|", "!",
-                 "·", "$", "%", "&", "/",
-                 "(", ")", "?", "¡",
-                 "¿", "[", "^", "<code>", "]",
-                 "+", "}", "{", "¨", "´",
-                 ">", "< ", ";", ",", ":",
-                 ".", " "),
+            array(
+                "¨", "º", "~",
+                "#", "@", "|", "!",
+                "·", "$", "%", "&", "/",
+                "(", ")", "?", "¡",
+                "¿", "[", "^", "<code>", "]",
+                "+", "}", "{", "¨", "´",
+                ">", "< ", ";", ",", ":",
+                ".", " "
+            ),
             '',
             $id
         );
         return $id;
     }
-    public function detalle($slug){
+    public function detalle($slug)
+    {
         $id_pregunta = $this->parse_id($slug);
 
         $arrayUrl = explode('-', $id_pregunta);
@@ -153,7 +155,7 @@ class ComunidadController extends Controller
                     if (!$tags) {
                         $tagsInsert = Tags::insertGetId(['tag' => $item]);
                     }
-                    preguntas_tags::insert(['pregunta_id' => $preguntaInsert, 'tag_id' => (!$tags)? $tagsInsert: $tags->id]);
+                    preguntas_tags::insert(['pregunta_id' => $preguntaInsert, 'tag_id' => (!$tags) ? $tagsInsert : $tags->id]);
                 }
             }
 
@@ -181,7 +183,7 @@ class ComunidadController extends Controller
             }
 
             $result = [
-                'status' => $user->locked ? false: true,
+                'status' => $user->locked ? false : true,
                 'locked' => $user->locked
             ];
 
@@ -198,30 +200,73 @@ class ComunidadController extends Controller
     public function get_all_questions()
     {
         $approvedQuestions = Pregunta::select(
-            'pregunta.id', 'pregunta.titulo',
+            'pregunta.id',
+            'pregunta.titulo',
             \DB::raw('COUNT(R.id) AS repuestas'),
         )
-        ->join('respuestas AS R', 'R.pregunta_id', 'pregunta.id')
-        ->where('aprobado', 1)
-        ->groupBy('pregunta.id')
-        ->orderBy('pregunta.fecha', 'DESC')
-        ->get();
-
-        $pendingQuestions = Pregunta::select(
-            'pregunta.id', 'pregunta.titulo',
-            \DB::raw('COUNT(R.id) AS repuestas'),
-        )
-        ->join('respuestas AS R', 'R.pregunta_id', 'pregunta.id')
-        ->where('aprobado', 0)
-        ->groupBy('pregunta.id')
-        ->orderBy('pregunta.fecha', 'DESC')
-        ->get();
+            ->leftJoin('respuestas AS R', 'R.pregunta_id', 'pregunta.id')
+            ->where('aprobado', 1)
+            ->groupBy('pregunta.id')
+            ->orderBy('pregunta.fecha', 'DESC')
+            ->get();
 
         $response = [
             'approved_questions' => $approvedQuestions,
-            'pending_questions' => $pendingQuestions
         ];
 
         return $response;
+    }
+
+    public function get_by_questions(Request $request)
+    {
+        $question = Pregunta::select('pregunta.*', 'U.nombre')->leftJoin('users AS U', 'U.id', 'pregunta.user_id')->where('pregunta.id', $request->id)->first();
+        $answers = Respuestas::select('respuestas.*', 'U.nombre', 'U.image')->leftJoin('users AS U', 'U.id', 'respuestas.user_id')->where('pregunta_id', $request->id)->orderBy('fecha', 'DESC')->get();
+        $tags = Tags::leftJoin('preguntas_tags  AS PT', 'PT.tag_id', 'tags.id')->where('PT.pregunta_id', $request->id)->get();
+
+        $response = [
+            'question' => $question,
+            'answers' => $answers,
+            'tags' => $tags
+        ];
+
+        return $response;
+    }
+
+    public function delete_comment(Request $request)
+    {
+        $respuesta = Respuestas::where('id', $request->id)->first();
+        Respuestas::where('id', $request->id)->delete();
+        $answers = Respuestas::select('respuestas.*', 'U.nombre', 'U.image')->leftJoin('users AS U', 'U.id', 'respuestas.user_id')->where('pregunta_id', $respuesta->pregunta_id)->orderBy('fecha', 'DESC')->get();
+
+        $response = [
+            'status' => true,
+            'message' => 'Datos actualizados correctamente!',
+            'answers' => $answers
+        ];
+
+        return $response;
+    }
+
+    public function delete_question(Request $request)
+    {
+        try {
+            Respuestas::where('pregunta_id', $request->id)->delete();
+            preguntas_tags::where('pregunta_id', $request->id)->delete();
+            Pregunta::where('id', $request->id)->delete();
+
+            $response = [
+                'status' => true,
+                'message' => 'Datos actualizados correctamente!',
+            ];
+    
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+                'message' => strval($th),
+            ];
+    
+            return $response;
+        }
     }
 }

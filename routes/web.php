@@ -128,7 +128,16 @@ $router->group(['prefix' => 'admin',  'middleware' => 'admin'], function () use 
     $router->post('update-dealerships', 'OtrosController@update_dealerships');
     $router->post('delete-dealerships', 'OtrosController@delete_dealerships');
 
+    $router->get('banners', 'HomeController@get_all_banners');
+    $router->get('form-update-banner/{id}', 'HomeController@get_by_banners');
+    $router->post('create-banner', 'HomeController@create_banners');
+    $router->post('update-banner', 'HomeController@update_banners');
+    $router->post('delete-banner', 'HomeController@delete_banners');
+
     $router->get('community', 'ComunidadController@get_all_questions');
+    $router->get('community/{id}', 'ComunidadController@get_by_questions');
+    $router->post('delete-comment', 'ComunidadController@delete_comment');
+    $router->post('delete-question', 'ComunidadController@delete_question');
 
     $router->get('news', 'OtrosController@get_all_news');
     $router->post('create-news', 'OtrosController@create_news');
