@@ -101,16 +101,16 @@ class VehiculosController extends Controller
             'q' => $request->query('q') ? $request->query('q') : null
         );
         $selectArray = array(
-            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio',
-            'vehicles.ano', 'vehicles.kilometraje',
+            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion', 
+            'vehicles.cilindraje', 'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'UC.nombre AS labelCiudad',
+            'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca',
+            'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TP.nombre AS tipoPrecioLabel',
             \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
             \DB::raw('IF(vehicles.confiable = 1, TRUE, FALSE) AS confiable'),
             \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
             \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
             \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
-            \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje'),
-            'UC.nombre AS labelCiudad',
-            'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca'
+            \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje')
         );
         if ($filtros['categoria'] === 'motos') {
             $selectArray[] = 'TM.nombre AS tipoMotoLabel';
@@ -163,7 +163,22 @@ class VehiculosController extends Controller
             $xml = simplexml_load_string(utf8_encode($data));
             $json = json_encode($xml);
             $array = json_decode($json, TRUE);
-            $resultSuggestion = [$filtros['q']];
+            $resultSuggestion = [
+                $filtros['q'], 
+                str_replace(" ", "-", $filtros['q']), 
+                str_replace("-", " ", $filtros['q']),
+                str_replace("-", "", $filtros['q']),
+                str_replace(" -", "-", $filtros['q']), 
+                str_replace("- ", "-", $filtros['q']), 
+                str_replace(" - ", "", $filtros['q']), 
+                str_replace(" -", "", $filtros['q']), 
+                str_replace("- ", "", $filtros['q']), 
+                str_replace(" -", " ", $filtros['q']), 
+                str_replace("- ", " ", $filtros['q']), 
+                str_replace(" - ", " ", $filtros['q']), 
+                str_replace(" - ", "-", $filtros['q']), 
+                str_replace(" ", "", $filtros['q'])
+            ];
 
             foreach ($array["CompleteSuggestion"] as $item) {
                 array_push($resultSuggestion, $item["suggestion"]["@attributes"]["data"]);
