@@ -180,6 +180,39 @@ class VehiculosController extends Controller
                 str_replace(" ", "", $filtros['q'])
             ];
 
+            $portionsSearch = explode(" ", $filtros['q']);
+            $reverseSearch = '';
+            foreach (array_reverse($portionsSearch) as $item) {
+                $reverseSearch .= $item . ' ';
+            }
+
+            array_push($resultSuggestion, $reverseSearch);
+
+            for ($i = 0; $i <= strlen($filtros['q']); $i++) {
+                array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '.' . substr($filtros['q'], $i));
+            }
+            for ($i = 0; $i <= strlen($filtros['q']); $i++) {
+                array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '-' . substr($filtros['q'], $i));
+            }
+            for ($i = 0; $i <= strlen($filtros['q']); $i++) {
+                array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '/' . substr($filtros['q'], $i));
+            }
+            for ($i = 0; $i <= strlen($filtros['q']); $i++) {
+                array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '?' . substr($filtros['q'], $i));
+            }
+            for ($i = 0; $i <= strlen($filtros['q']); $i++) {
+                array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '¿' . substr($filtros['q'], $i));
+            }
+            for ($i = 0; $i <= strlen($filtros['q']); $i++) {
+                array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '!' . substr($filtros['q'], $i));
+            }
+            for ($i = 0; $i <= strlen($filtros['q']); $i++) {
+                array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '¡' . substr($filtros['q'], $i));
+            }
+            for ($i = 0; $i <= strlen($filtros['q']); $i++) {
+                array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '=' . substr($filtros['q'], $i));
+            }
+
             foreach ($array["CompleteSuggestion"] as $item) {
                 array_push($resultSuggestion, $item["suggestion"]["@attributes"]["data"]);
             }
@@ -374,7 +407,7 @@ class VehiculosController extends Controller
         $diasPublicado = $diff->days;
 
         $imagenes = imagenes::select(
-            \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".") AS url'),
+            \DB::raw('CONCAT("https://d3bmp4azzreq60.cloudfront.net/fit-in/600x600/", imagenes.path, imagenes.nombre, ".") AS url'),
             'imagenes.extension',
             'imagenes.new_image'
         )
