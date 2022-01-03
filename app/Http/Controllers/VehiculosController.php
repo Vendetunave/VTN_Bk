@@ -186,6 +186,21 @@ class VehiculosController extends Controller
                 $reverseSearch .= $item . ' ';
             }
 
+            array_push($resultSuggestion, $reverseSearch);
+            array_push($resultSuggestion, str_replace(" ", "-", $reverseSearch));
+            array_push($resultSuggestion, str_replace("-", " ", $reverseSearch));
+            array_push($resultSuggestion, str_replace("-", "", $reverseSearch));
+            array_push($resultSuggestion, str_replace(" -", "-", $reverseSearch));
+            array_push($resultSuggestion, str_replace("- ", "-", $reverseSearch));
+            array_push($resultSuggestion, str_replace(" - ", "", $reverseSearch));
+            array_push($resultSuggestion, str_replace(" -", "", $reverseSearch));
+            array_push($resultSuggestion, str_replace("- ", "", $reverseSearch));
+            array_push($resultSuggestion, str_replace(" -", " ", $reverseSearch));
+            array_push($resultSuggestion, str_replace("- ", " ", $reverseSearch));
+            array_push($resultSuggestion, str_replace(" - ", " ", $reverseSearch));
+            array_push($resultSuggestion, str_replace(" - ", "-", $reverseSearch));
+            array_push($resultSuggestion, str_replace(" ", "", $reverseSearch));
+
             $foundMatches = array();
             $maxNumber = 0;
             preg_match_all('/([1-9]\d*|0)(,\d+)?/', $filtros['q'], $foundMatches);
@@ -196,12 +211,37 @@ class VehiculosController extends Controller
             }
 
             if(strlen($maxNumber) === 4){
-                array_push($resultSuggestion, str_replace($maxNumber, "", $filtros['q']));
-                array_push($resultSuggestion, str_replace($maxNumber, "", $reverseSearch));
+                $searchWithoutYear = str_replace($maxNumber, "", $filtros['q']);
+                $searchWithoutYearReverse = str_replace($maxNumber, "", $reverseSearch);
+                array_push($resultSuggestion, str_replace(" ", "-", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace("-", " ", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace("-", "", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace(" -", "-", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace("- ", "-", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace(" - ", "", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace(" -", "", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace("- ", "", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace(" -", " ", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace("- ", " ", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace(" - ", " ", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace(" - ", "-", $searchWithoutYear));
+                array_push($resultSuggestion, str_replace(" ", "", $searchWithoutYear));
+
+                array_push($resultSuggestion, str_replace(" ", "-", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace("-", " ", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace("-", "", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace(" -", "-", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace("- ", "-", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace(" - ", "", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace(" -", "", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace("- ", "", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace(" -", " ", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace("- ", " ", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace(" - ", " ", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace(" - ", "-", $searchWithoutYearReverse));
+                array_push($resultSuggestion, str_replace(" ", "", $searchWithoutYearReverse));
                 $result->where('ano', $maxNumber);
             } 
-
-            array_push($resultSuggestion, $reverseSearch);
 
             for ($i = 0; $i <= strlen($filtros['q']); $i++) {
                 array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '.' . substr($filtros['q'], $i));
