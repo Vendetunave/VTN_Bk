@@ -101,7 +101,7 @@ class VehiculosController extends Controller
             'q' => $request->query('q') ? $request->query('q') : null
         );
         $selectArray = array(
-            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion', 
+            'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion',
             'vehicles.cilindraje', 'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'UC.nombre AS labelCiudad',
             'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca',
             'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TP.nombre AS tipoPrecioLabel',
@@ -164,19 +164,19 @@ class VehiculosController extends Controller
             $json = json_encode($xml);
             $array = json_decode($json, TRUE);
             $resultSuggestion = [
-                $filtros['q'], 
-                str_replace(" ", "-", $filtros['q']), 
+                $filtros['q'],
+                str_replace(" ", "-", $filtros['q']),
                 str_replace("-", " ", $filtros['q']),
                 str_replace("-", "", $filtros['q']),
-                str_replace(" -", "-", $filtros['q']), 
-                str_replace("- ", "-", $filtros['q']), 
-                str_replace(" - ", "", $filtros['q']), 
-                str_replace(" -", "", $filtros['q']), 
-                str_replace("- ", "", $filtros['q']), 
-                str_replace(" -", " ", $filtros['q']), 
-                str_replace("- ", " ", $filtros['q']), 
-                str_replace(" - ", " ", $filtros['q']), 
-                str_replace(" - ", "-", $filtros['q']), 
+                str_replace(" -", "-", $filtros['q']),
+                str_replace("- ", "-", $filtros['q']),
+                str_replace(" - ", "", $filtros['q']),
+                str_replace(" -", "", $filtros['q']),
+                str_replace("- ", "", $filtros['q']),
+                str_replace(" -", " ", $filtros['q']),
+                str_replace("- ", " ", $filtros['q']),
+                str_replace(" - ", " ", $filtros['q']),
+                str_replace(" - ", "-", $filtros['q']),
                 str_replace(" ", "", $filtros['q'])
             ];
 
@@ -185,6 +185,21 @@ class VehiculosController extends Controller
             foreach (array_reverse($portionsSearch) as $item) {
                 $reverseSearch .= $item . ' ';
             }
+
+            $foundMatches = array();
+            $maxNumber = 0;
+            preg_match_all('/([1-9]\d*|0)(,\d+)?/', $filtros['q'], $foundMatches);
+            foreach ($foundMatches as $foundMatche) {
+                foreach ($foundMatche as $match) {
+                    if ($match !== "" && (int) $match > $maxNumber) $maxNumber = (int) $match;
+                }
+            }
+
+            if(strlen($maxNumber) === 4){
+                array_push($resultSuggestion, str_replace($maxNumber, "", $filtros['q']));
+                array_push($resultSuggestion, str_replace($maxNumber, "", $reverseSearch));
+                $result->where('ano', $maxNumber);
+            } 
 
             array_push($resultSuggestion, $reverseSearch);
 
@@ -211,7 +226,7 @@ class VehiculosController extends Controller
             }
             for ($i = 0; $i <= strlen($filtros['q']); $i++) {
                 array_push($resultSuggestion, substr($filtros['q'], 0, $i) . '=' . substr($filtros['q'], $i));
-            }
+            }              
 
             foreach ($array["CompleteSuggestion"] as $item) {
                 array_push($resultSuggestion, $item["suggestion"]["@attributes"]["data"]);
@@ -219,7 +234,7 @@ class VehiculosController extends Controller
 
             $result->Where(function ($query) use ($resultSuggestion) {
                 foreach ($resultSuggestion as $suggestion) {
-                    $query->orWhere('vehicles.title', 'LIKE', '%' . $suggestion . '%');
+                    $query->orWhere('vehicles.title', 'LIKE', '%' . rtrim(ltrim($suggestion)) . '%');
                 }
             });
         }
@@ -954,7 +969,7 @@ class VehiculosController extends Controller
             $modelos = Modelos::all();
 
             $imagenes = imagenes::select(
-                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".", imagenes.extension) AS url, imagenes.id AS imageId'),
+                \DB::raw('CONCAT("https://d3bmp4azzreq60.cloudfront.net/fit-in/2500x2500/", imagenes.path, imagenes.nombre, ".webp") AS url, imagenes.id AS imageId'),
                 'order'
             )
                 ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
