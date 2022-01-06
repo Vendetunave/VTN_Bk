@@ -462,7 +462,7 @@ class VehiculosController extends Controller
         $diasPublicado = $diff->days;
 
         $imagenes = imagenes::select(
-            \DB::raw('CONCAT("https://d3bmp4azzreq60.cloudfront.net/fit-in/3000x3000/", imagenes.path, imagenes.nombre, ".") AS url'),
+            \DB::raw('CONCAT("https://d3bmp4azzreq60.cloudfront.net/fit-in/2000x2000/", imagenes.path, imagenes.nombre, ".") AS url'),
             'imagenes.extension',
             'imagenes.new_image'
         )
