@@ -113,6 +113,7 @@ $router->group(['prefix' => 'admin',  'middleware' => 'admin'], function () use 
     $router->post('approve-vehicle', 'VehiculosController@approve_vehicle');
     $router->post('approve-promotion-vehicle', 'VehiculosController@approve_promotion');
     $router->post('remove-vehicle-admin', 'VehiculosController@remove_vehicle_admin');
+    $router->post('images-vehicle', 'VehiculosController@images_vehicle');
 
     $router->get('technical-sheets', 'FichaTecnicaController@get_all_technical_sheets');
     $router->get('form-updated-technical-sheets/{id}', 'FichaTecnicaController@get_by_technical_sheets');

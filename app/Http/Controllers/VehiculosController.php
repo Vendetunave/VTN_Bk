@@ -1665,4 +1665,27 @@ class VehiculosController extends Controller
             return ['status' => $th];
         }
     }
+
+    public function images_vehicle(Request $request)
+    {
+        try {
+            $imagenes = imagenes::select(
+                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".", imagenes.extension) AS download'),
+                \DB::raw('CONCAT(imagenes.nombre, ".", imagenes.extension) AS filename')
+            )
+                ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
+                ->where('IV.id_vehicle', $request->id)
+                ->orderBy('imagenes.order', 'ASC')
+                ->get();
+
+            $response = [
+                'status' => true,
+                'imagenes' => $imagenes,
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+    }
 }
