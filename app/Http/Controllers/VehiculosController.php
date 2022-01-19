@@ -409,111 +409,119 @@ class VehiculosController extends Controller
         $vehiculoViews = Vehicles::select('views')->where('vehicles.id', $id)->first();
         if ($vehiculoViews) {
             \DB::table('vehicles')->where('id', $id)->update(['views' => ($vehiculoViews->views + 1)]);
-        }
 
-        $vehiculo = Vehicles::select(
-            'vehicles.*',
-            \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
-            \DB::raw('IF(vehicles.confiable = 1, TRUE, FALSE) AS confiable'),
-            \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
-            \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
-            \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
-            \DB::raw('IF(vehicles.peritaje <> "", CONCAT("https://vendetunave.s3.amazonaws.com/vendetunave/pdf/peritaje/", vehicles.peritaje), FALSE) AS peritaje'),
-            'C.nombre AS combustibleLabel',
-            'CO.nombre AS colorLabel',
-            'T.nombre AS transmisionLabel',
-            'M.nombre AS modeloLabel',
-            'M.id AS modeloId',
-            'MA.nombre AS marcaLabel',
-            'MA.id AS marcaId',
-            'TV.nombre AS tipoLabel',
-            'TV.id AS tipoId',
-            'TM.nombre AS tipoMotoLabel',
-            'TM.id AS tipoMotoId',
-            'UC.nombre AS ciudadLabel',
-            'UD.nombre AS departamentoLabel',
-            'TP.nombre AS tipoPrecioLabel',
-            'I.nombre AS nameImage',
-            'I.extension',
-            'I.new_image'
-        )
-            ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
-            ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
-            ->leftJoin('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')
-            ->join('combustibles AS C', 'C.id', 'vehicles.combustible')
-            ->join('colores AS CO', 'CO.id', 'vehicles.color')
-            ->join('transmisiones AS T', 'T.id', 'vehicles.transmision')
-            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
-            ->join('marcas AS MA', 'MA.id', 'M.marca_id')
-            ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
-            ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
-            ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
-            ->where('vehicles.id', $id)
-            ->first();
+            $vehiculo = Vehicles::select(
+                'vehicles.*',
+                \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
+                \DB::raw('IF(vehicles.confiable = 1, TRUE, FALSE) AS confiable'),
+                \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
+                \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
+                \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
+                \DB::raw('IF(vehicles.peritaje <> "", CONCAT("https://vendetunave.s3.amazonaws.com/vendetunave/pdf/peritaje/", vehicles.peritaje), FALSE) AS peritaje'),
+                'C.nombre AS combustibleLabel',
+                'CO.nombre AS colorLabel',
+                'T.nombre AS transmisionLabel',
+                'M.nombre AS modeloLabel',
+                'M.id AS modeloId',
+                'MA.nombre AS marcaLabel',
+                'MA.id AS marcaId',
+                'TV.nombre AS tipoLabel',
+                'TV.id AS tipoId',
+                'TM.nombre AS tipoMotoLabel',
+                'TM.id AS tipoMotoId',
+                'UC.nombre AS ciudadLabel',
+                'UD.nombre AS departamentoLabel',
+                'TP.nombre AS tipoPrecioLabel',
+                'I.nombre AS nameImage',
+                'I.extension',
+                'I.new_image'
+            )
+                ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
+                ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
+                ->leftJoin('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')
+                ->join('combustibles AS C', 'C.id', 'vehicles.combustible')
+                ->join('colores AS CO', 'CO.id', 'vehicles.color')
+                ->join('transmisiones AS T', 'T.id', 'vehicles.transmision')
+                ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+                ->join('marcas AS MA', 'MA.id', 'M.marca_id')
+                ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+                ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
+                ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
+                ->where('vehicles.id', $id)
+                ->first();
 
-        $urlCategory = str_replace(' ', '-', $vehiculo->tipoLabel) . '_' . $vehiculo->tipoId;
-        $urlTypeMoto = str_replace(' ', '-', $vehiculo->tipoMotoLabel) . '_' . $vehiculo->tipoMotoId;
-        $urlMarca = str_replace(' ', '-', $vehiculo->marcaLabel) . '_' . $vehiculo->marcaId;
-        $urlModelo = str_replace(' ', '-', $vehiculo->modeloLabel) . '_' . $vehiculo->modeloId;
+            $urlCategory = str_replace(' ', '-', $vehiculo->tipoLabel) . '_' . $vehiculo->tipoId;
+            $urlTypeMoto = str_replace(' ', '-', $vehiculo->tipoMotoLabel) . '_' . $vehiculo->tipoMotoId;
+            $urlMarca = str_replace(' ', '-', $vehiculo->marcaLabel) . '_' . $vehiculo->marcaId;
+            $urlModelo = str_replace(' ', '-', $vehiculo->modeloLabel) . '_' . $vehiculo->modeloId;
 
-        $date1 = new DateTime($vehiculo->fecha_publicacion);
-        $date2 = new DateTime();
-        $diff = $date1->diff($date2);
-        $diasPublicado = $diff->days;
+            $date1 = new DateTime($vehiculo->fecha_publicacion);
+            $date2 = new DateTime();
+            $diff = $date1->diff($date2);
+            $diasPublicado = $diff->days;
 
-        $imagenes = imagenes::select(
-            \DB::raw('CONCAT("https://d3bmp4azzreq60.cloudfront.net/fit-in/2000x2000/", imagenes.path, imagenes.nombre, ".") AS url'),
-            'imagenes.extension',
-            'imagenes.new_image'
-        )
-            ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
-            ->where('IV.id_vehicle', $id)
-            ->orderBy('imagenes.order', 'ASC')
-            ->get();
+            $imagenes = imagenes::select(
+                \DB::raw('CONCAT("https://d3bmp4azzreq60.cloudfront.net/fit-in/2000x2000/", imagenes.path, imagenes.nombre, ".") AS url'),
+                'imagenes.extension',
+                'imagenes.new_image'
+            )
+                ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
+                ->where('IV.id_vehicle', $id)
+                ->orderBy('imagenes.order', 'ASC')
+                ->get();
 
-        $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
-            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
-            ->join('imagenes AS I', 'I.id', 'IV.id_image')
-            ->where('activo', 1)
-            ->where('vehicles.modelo_id', $vehiculo->modelo_id)
-            ->where('vehicles.id', '<>', $vehiculo->id)
-            ->groupBy('vehicles.id')
-            ->limit(10)
-            ->get();
+            $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
+                ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+                ->join('imagenes AS I', 'I.id', 'IV.id_image')
+                ->where('activo', 1)
+                ->where('vehicles.modelo_id', $vehiculo->modelo_id)
+                ->where('vehicles.id', '<>', $vehiculo->id)
+                ->groupBy('vehicles.id')
+                ->limit(10)
+                ->get();
 
-        $vehiculosRelacionadosCount = Vehicles::where('activo', 1)
-            ->where('vehicles.modelo_id', $vehiculo->modelo_id)
-            ->where('vehicles.id', '<>', $vehiculo->id)
-            ->count();
+            $vehiculosRelacionadosCount = Vehicles::where('activo', 1)
+                ->where('vehicles.modelo_id', $vehiculo->modelo_id)
+                ->where('vehicles.id', '<>', $vehiculo->id)
+                ->count();
 
-        $vehicleFav = array();
+            $vehicleFav = array();
 
-        $user = Auth::user();
-        if ($user) {
-            //Si esta logueado entonces almacena la busqueda
-            $existBusqueda = Busquedas::where('user_id', $user->id)->where('vehiculo_id', $vehiculo->id)->get();
-            if (COUNT($existBusqueda) == 0) {
-                $busqueda = Busquedas::insert([
-                    'user_id' => $user->id,
-                    'vehiculo_id' => $vehiculo->id,
-                    'fecha' => date('Y-m-d'),
-                ]);
+            $user = Auth::user();
+            if ($user) {
+                //Si esta logueado entonces almacena la busqueda
+                $existBusqueda = Busquedas::where('user_id', $user->id)->where('vehiculo_id', $vehiculo->id)->get();
+                if (COUNT($existBusqueda) == 0) {
+                    $busqueda = Busquedas::insert([
+                        'user_id' => $user->id,
+                        'vehiculo_id' => $vehiculo->id,
+                        'fecha' => date('Y-m-d'),
+                    ]);
+                }
+                $vehicleFav = Favoritos::where('vehiculo_id', $vehiculo->id)->where('user_id', $user->id)->get();
             }
-            $vehicleFav = Favoritos::where('vehiculo_id', $vehiculo->id)->where('user_id', $user->id)->get();
+
+            $response = [
+                'status' => true,
+                'vehicleExists' => true,
+                'vehiculo' => $vehiculo,
+                'imagenes' => $imagenes,
+                'vehiculosRelacionados' => $vehiculosRelacionados,
+                'vehiculosRelacionadosCount' => $vehiculosRelacionadosCount,
+                'vehicleFav' => $vehicleFav,
+                'diasPublicado' => $diasPublicado,
+                'urlCategory' => $urlCategory,
+                'urlTypeMoto' => $urlTypeMoto,
+                'urlMarca' => $urlMarca,
+                'urlModelo' => $urlModelo
+            ];
+
+            return $response;
         }
 
         $response = [
             'status' => true,
-            'vehiculo' => $vehiculo,
-            'imagenes' => $imagenes,
-            'vehiculosRelacionados' => $vehiculosRelacionados,
-            'vehiculosRelacionadosCount' => $vehiculosRelacionadosCount,
-            'vehicleFav' => $vehicleFav,
-            'diasPublicado' => $diasPublicado,
-            'urlCategory' => $urlCategory,
-            'urlTypeMoto' => $urlTypeMoto,
-            'urlMarca' => $urlMarca,
-            'urlModelo' => $urlModelo
+            'vehicleExists' => false
         ];
 
         return $response;
