@@ -47,7 +47,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('remove_favorito_ficha', 'UsuarioController@remove_favorito_ficha');
     $router->post('profile_update', 'UsuarioController@profile_update');
 
-    $router->post('crear_pregunta', 'ComunidadController@createQuestion');    
+    $router->post('crear_pregunta', 'ComunidadController@createQuestion');
 });
 //Public routes
 $router->group(['prefix' => 'api'], function () use ($router){
@@ -114,6 +114,8 @@ $router->group(['prefix' => 'admin',  'middleware' => 'admin'], function () use 
     $router->post('approve-promotion-vehicle', 'VehiculosController@approve_promotion');
     $router->post('remove-vehicle-admin', 'VehiculosController@remove_vehicle_admin');
     $router->post('images-vehicle', 'VehiculosController@images_vehicle');
+    $router->post('download-zip', 'OtrosController@downloadZip');
+    $router->post('remove-zip', 'OtrosController@removeZip');
 
     $router->get('technical-sheets', 'FichaTecnicaController@get_all_technical_sheets');
     $router->get('form-updated-technical-sheets/{id}', 'FichaTecnicaController@get_by_technical_sheets');

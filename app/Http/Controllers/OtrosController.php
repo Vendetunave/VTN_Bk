@@ -10,11 +10,13 @@ use App\Models\Servicios;
 use App\Models\Dealerships;
 use App\Models\DealershipsBrands;
 use App\Models\ubicacion_ciudades;
+use App\Models\imagenes;
 use App\Models\Marcas;
 use App\Models\tokens;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManagerStatic as Image;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use Illuminate\Support\Facades\Mail;
 use App\Models\Config;
@@ -25,6 +27,10 @@ use App\Models\Roles;
 use App\Models\Vehicles;
 use App\Models\TiposServicios;
 use Illuminate\Support\Facades\Hash;
+use File;
+use ZipArchive;
+
+
 
 class OtrosController extends Controller
 {
@@ -201,7 +207,11 @@ class OtrosController extends Controller
                 return ['status' => false, 'message' => 'Lo sentimos, tu usuario no se encuentra en nuestra base de datos.'];
             }
         } catch (\Throwable $th) {
-            return ['status' => false, 'message' => 'Lo sentimos! Identificamos que tienes un problema con tu configuración de servidor de correos. Por favor ponte en contacto con tu administrador.'];
+            return [
+                'status' => false,
+                'message' => 'Lo sentimos! Identificamos que tienes un problema con tu configuración de servidor de correos. Por favor ponte en contacto con tu administrador.',
+                'error' => strval($th)
+            ];
         }
     }
 
@@ -462,7 +472,7 @@ class OtrosController extends Controller
                 'status' => true,
                 'news' => $news,
             ];
-    
+
             return $response;
         } catch (\Throwable $th) {
             $response = [
@@ -472,7 +482,6 @@ class OtrosController extends Controller
 
             return $response;
         }
-        
     }
 
     public function update_news(Request $request)
@@ -836,5 +845,46 @@ class OtrosController extends Controller
             'message' => 'Se elimino la concesionario!'
         ];
         return $response;
+    }
+
+    public function downloadZip(Request $request)
+    {
+        try {
+            $imagenes = imagenes::select(
+                \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".", imagenes.extension) AS url'),
+            )
+                ->join('imagenes_vehiculo AS IV', 'IV.id_image', 'imagenes.id')
+                ->where('IV.id_vehicle', $request->id)
+                ->orderBy('imagenes.order', 'ASC')
+                ->get();
+
+            $name =  uniqid();
+            $filePath = app()->basePath('public/' . $name . '.zip');
+            $zip = new \ZipArchive();
+
+            if ($zip->open($filePath, \ZipArchive::CREATE) !== true) {
+                throw new \RuntimeException('Cannot open ' . $filePath);
+            }
+
+            foreach ($imagenes as $image) {
+                $download_file = file_get_contents($image->url);
+                $zip->addFromString(basename($image->url), $download_file);
+            }
+            $zip->close();
+
+            $response = [
+                'status' => true,
+                'path' => $name . '.zip'
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public function removeZip(Request $request)
+    {
+        unlink(app()->basePath('public/' . $request->path));
     }
 }
