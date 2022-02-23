@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Users;
 use App\Models\Busquedas;
+use App\Models\Pregunta;
 use App\Models\Respuestas;
 use App\Models\Favoritos;
 use App\Models\FavoritesDataSheets;
@@ -22,6 +23,7 @@ use App\Models\tipo_accesorio;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class UsuarioController extends Controller
 {
@@ -180,8 +182,48 @@ class UsuarioController extends Controller
     {
         $user = Users::where('id', $request->id)->first();
         if ($user->locked == 0) {
-            $respuesta = Respuestas::insert(['pregunta_id' => $request->idPregunta, 'respuesta' => $request->comentario, 'user_id' => $request->id, 'fecha' => date('Y-m-d H:i:s')]);
+
+            $pregunta = Pregunta::select('U.id', 'U.nombre', 'U.email', 'pregunta.titulo')
+                ->join('users AS U', 'U.id', 'pregunta.user_id')
+                ->where('pregunta.id', $request->idPregunta)
+                ->first();
+            
+            $usersQuestion = Respuestas::select('U.id', 'U.nombre', 'U.email')
+                ->join('users AS U', 'U.id', 'respuestas.user_id')
+                ->where('pregunta_id', $request->idPregunta)
+                ->where('user_id', '<>', $request->user_id)
+                ->where('user_id', '<>', $pregunta->id)
+                ->where('user_id', '<>', 3)
+                ->groupBy('user_id')
+                ->get();
+
+            Respuestas::insert(['pregunta_id' => $request->idPregunta, 'respuesta' => $request->comentario, 'user_id' => $request->id, 'fecha' => date('Y-m-d H:i:s')]);
+
+            $slug = str_replace(' ', '-', $pregunta->titulo);
+            $slug = str_replace('?', '', $slug);
+            $slug = str_replace('¿', '', $slug);
+            $slug = $slug . '-' . $request->idPregunta;
+
+            $subject = "Comunidad";
+            if ($request->id !== $pregunta->id) {
+                $forQuestion = $pregunta->email;
+                Mail::send('mailCommunity', ['nombre' => $pregunta->nombre, 'slug' => $slug], function ($msj) use ($subject, $forQuestion) {
+                    $msj->from("no-reply@vendetunave.co", "VendeTuNave");
+                    $msj->subject($subject);
+                    $msj->to($forQuestion);
+                });
+            }
+            
+            foreach ($usersQuestion as $item) {
+                $for = $item->email;
+                Mail::send('mailCommunity', ['nombre' => $item->nombre, 'slug' => $slug], function ($msj) use ($subject, $for) {
+                    $msj->from("no-reply@vendetunave.co", "VendeTuNave");
+                    $msj->subject($subject);
+                    $msj->to($for);
+                });
+            }
         }
+
         $result = [
             'state' => ($user->locked == 0) ? true : false
         ];
