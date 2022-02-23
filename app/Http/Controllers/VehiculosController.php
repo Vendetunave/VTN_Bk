@@ -573,6 +573,8 @@ class VehiculosController extends Controller
             $kmVehiculo = str_replace('.', '', $request->kilometraje_vehiculo);
             $cilindrajeVehiculo = str_replace('.', '', $request->cilindraje_vehiculo);
 
+            $user = \DB::table('users')->where('id', $request->user_id)->first();
+
             $vehiculoId = Vehicles::insertGetId([
                 'title' => $request->titulo_vehiculo,
                 'descripcion' => $request->descripcion_vehiculo,
@@ -587,7 +589,7 @@ class VehiculosController extends Controller
                 'transmision' => $request->transmision_vehiculo,
                 'placa' => $request->placa_vehiculo,
                 'ciudad_id' => $request->ciudad_vehiculo,
-                'vendedor_id' => $request->user_id,
+                'vendedor_id' => $user->id,
                 'activo' => 0,
                 'aprobado_promocion' => 0,
                 'tipo_vehiculo' => $request->tipo_vehiculo,
@@ -603,6 +605,7 @@ class VehiculosController extends Controller
                 'tipo_moto' => ($request->tipo_vehiculo === 5) ? 1 : 0,
                 'blindado' => ($request->blindado_vehiculo == 2) ? 0 : $request->blindado_vehiculo,
                 'peritaje' => ($request->peritaje == 0) ? null : $request->peritaje,
+                'confiable' => $user->confiable
             ]);
 
             $images = $request->images;

@@ -309,7 +309,7 @@ class OtrosController extends Controller
 
     public function get_all_users(Request $request)
     {
-        $users = User::select('users.id', 'users.nombre', 'email', 'R.nombre AS rol', 'activo', 'locked')
+        $users = User::select('users.id', 'users.nombre', 'email', 'R.nombre AS rol', 'activo', 'locked', 'confiable')
             ->join('roles AS R', 'R.id', 'rol_id')
             ->orderBy('users.id', 'ASC')
             ->get();
@@ -446,6 +446,24 @@ class OtrosController extends Controller
         $result = [
             'status' => true,
             'locked' => ($user->locked) ? false : true
+        ];
+
+        return $result;
+    }
+
+    public function dependable_user(Request $request)
+    {
+        $user = Users::where('id', $request->id)->first();
+
+        \DB::table('users')->where('id', $request->id)
+            ->update(['confiable' => ($user->confiable) ? 0 : 1]);
+
+        \DB::table('vehicles')->where('vendedor_id', $user->id)
+            ->update(['confiable' => ($user->confiable) ? 0 : 1]);
+
+        $result = [
+            'status' => true,
+            'dependable' => ($user->confiable) ? false : true
         ];
 
         return $result;
