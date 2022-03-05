@@ -1537,7 +1537,7 @@ class VehiculosController extends Controller
 
     public function approve_promotion(Request $request)
     {
-        if ($request->approve_promotion) {
+        if ($request->approve) {
             \DB::table('vehicles')->where('id', $request->id)
                 ->update(['aprobado_promocion' => 1]);
         } else {
