@@ -11,6 +11,7 @@ use App\Models\VehicleClass;
 use Illuminate\Http\Request;
 
 use Barryvdh\DomPDF\Facade;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentsController extends Controller
@@ -91,6 +92,18 @@ class DocumentsController extends Controller
             if (strpos($userAgent, 'Instagram')) {
                 return $pdf->stream('archivo.pdf');
             }
+
+
+            if ($request->isIos) {
+                $name = uniqid() . '.pdf';
+                Storage::disk('s3')->put('vendetunave/pdf/documents/' . $name, $pdf->output(), 'public');
+                $responseIos = [
+                    'path' => 'vendetunave/pdf/documents/' . $name,
+                ];
+        
+                return $responseIos;
+            }
+
             return $pdf->download('archivo.pdf');
         } catch (\Throwable $th) {
             return ['status' => false, 'message' => $th];
