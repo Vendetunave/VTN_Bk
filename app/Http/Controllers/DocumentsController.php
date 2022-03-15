@@ -158,6 +158,17 @@ class DocumentsController extends Controller
             if (strpos($userAgent, 'Instagram')) {
                 return $pdf->stream('archivo.pdf');
             }
+
+            if ($request->isIos) {
+                $name = uniqid() . '.pdf';
+                Storage::disk('s3')->put('vendetunave/pdf/documents/' . $name, $pdf->output(), 'public');
+                $responseIos = [
+                    'path' => 'vendetunave/pdf/documents/' . $name,
+                ];
+        
+                return $responseIos;
+            }
+
             return $pdf->download('archivo.pdf');
         } catch (\Throwable $th) {
             return ['status' => false, 'error' => $th];
