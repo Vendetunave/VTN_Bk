@@ -158,7 +158,10 @@ class HomeController extends Controller
     {
         try {
             $bannerCount = Banners::select('posicion')->where('id', '<>', $request->id)->where('type', $request->type)->orderBy('posicion', 'desc')->first();
-            $count = $request->posicion <= $bannerCount->posicion ? ($bannerCount->posicion + 1) : $request->posicion;
+            $count = 1;
+            if ($bannerCount) {
+                $count = $request->posicion <= $bannerCount->posicion ? ($bannerCount->posicion + 1) : $request->posicion;
+            }
 
             Banners::where('id', $request->id)->update([
                 'nombre' => $request->nombre,
