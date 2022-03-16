@@ -125,7 +125,10 @@ class HomeController extends Controller
                 $imageConvert = (string) Image::make($request->file('image1'))->encode('webp', 100);
                 Storage::disk('s3')->put('vendetunave/images/banners/' . $name . '.' . 'webp', $imageConvert, 'public');
                 $bannerCount = Banners::select('posicion')->where('type', $request->type)->orderBy('posicion', 'desc')->first();
-                $count = $request->position <= $bannerCount->posicion ? ($bannerCount->posicion + 1) : $request->position;
+                $count = 1;
+                if ($bannerCount) {
+                    $count = $request->position <= $bannerCount->posicion ? ($bannerCount->posicion + 1) : $request->position;
+                }
                 Banners::insert([
                     'nombre' => $request->title,
                     'url' => 'https://vendetunave.s3.amazonaws.com/vendetunave/images/banners/' . $filenametostore,
