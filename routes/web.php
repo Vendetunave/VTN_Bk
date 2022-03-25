@@ -105,6 +105,7 @@ $router->group(['prefix' => 'admin',  'middleware' => 'admin'], function () use 
     $router->put('active-user', 'OtrosController@active_user');
     $router->put('locked-user', 'OtrosController@bloqued_user');
     $router->put('dependable-user', 'OtrosController@dependable_user');
+    $router->put('premium-user', 'OtrosController@premium_user');
     $router->get('roles-user', 'OtrosController@get_roles');
 
     $router->get('vehicles', 'VehiculosController@get_all_vehicles');

@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Jobs\RemoveVehicles;
+use App\Jobs\InactivePremium;
 use Illuminate\Console\Scheduling\Schedule;
 use Laravel\Lumen\Console\Kernel as ConsoleKernel;
 
@@ -26,5 +27,6 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->job(new RemoveVehicles())->everyMinute();
+        $schedule->job(new InactivePremium())->everyMinute();
     }
 }

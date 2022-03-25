@@ -110,7 +110,8 @@ class VehiculosController extends Controller
             \DB::raw('IF(vehicles.blindado = 1, TRUE, FALSE) AS blindado'),
             \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
             \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
-            \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje')
+            \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje'),
+            'U.premium'
         );
         if ($filtros['categoria'] === 'motos') {
             $selectArray[] = 'TM.nombre AS tipoMotoLabel';
@@ -126,6 +127,7 @@ class VehiculosController extends Controller
             ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
             ->join('combustibles AS MO', 'MO.id', 'vehicles.combustible')
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
+            ->join('users AS U', 'U.id', 'vehicles.vendedor_id')
             ->where('vehicles.activo', 1);
         /****/
 
@@ -337,6 +339,29 @@ class VehiculosController extends Controller
             $arrayPrices = explode(":", $decodeParam);
             $result->whereBetween('kilometraje', $arrayPrices);
         }
+
+
+        if(
+            $filtros['q'] ||
+            $filtros['ubicacion'] ||
+            $filtros['ciudad'] ||
+            $filtros['motor'] ||
+            $filtros['tipo'] ||
+            $filtros['marca'] ||
+            $filtros['modelo'] ||
+            $filtros['transmision'] ||
+            $filtros['ano'] ||
+            $filtros['promocion'] ||
+            $filtros['permuta'] ||
+            $filtros['blindaje'] ||
+            $filtros['anio'] ||
+            $filtros['precio'] ||
+            $filtros['kilometraje'] ||
+            $filtros['estado']
+        ) {
+            $result->orderBy('U.active_premium', 'DESC');
+        }
+
         switch ($filtros['orden']) {
             case 1:
                 $result->orderBy('vehicles.condicion', 'ASC');
@@ -357,6 +382,7 @@ class VehiculosController extends Controller
             //$estado = ($estado == 2) ? 'Usado' : 'Nuevo';
             $result->where('vehicles.condicion', $filtros['estado']);
         }
+
         $total_records = count($result->groupBy('vehicles.id')->get());
         $result = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
 
@@ -473,9 +499,11 @@ class VehiculosController extends Controller
             $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
                 ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
                 ->join('imagenes AS I', 'I.id', 'IV.id_image')
-                ->where('activo', 1)
+                ->join('users AS U', 'U.id', 'vehicles.vendedor_id')
+                ->where('vehicles.activo', 1)
                 ->where('vehicles.modelo_id', $vehiculo->modelo_id)
                 ->where('vehicles.id', '<>', $vehiculo->id)
+                ->orderBy('U.active_premium', 'DESC')
                 ->groupBy('vehicles.id')
                 ->limit(10)
                 ->get();
