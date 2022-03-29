@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 
-use App\Models\Users;
+use App\Models\Vehicles;
 
 class InactivePremium
 {
@@ -32,10 +32,10 @@ class InactivePremium
         $fecha_actual = date("Y-m-d");
         $fechaCaducada = date("Y-m-d", strtotime($fecha_actual."- 60 days")); 
 
-        $user = Users::select('id')
+        $vehicle = Vehicles::select('id')
             ->where('active_premium', '<', $fechaCaducada)
             ->get();
         
-        Users::whereIn('id', $user)->update(['premium' => 0, 'active_premium' => null]);
+        Vehicles::whereIn('id', $vehicle)->update(['premium' => 0, 'active_premium' => null]);
     }
 }

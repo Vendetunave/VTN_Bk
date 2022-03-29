@@ -309,7 +309,7 @@ class OtrosController extends Controller
 
     public function get_all_users(Request $request)
     {
-        $users = User::select('users.id', 'users.nombre', 'email', 'R.nombre AS rol', 'activo', 'locked', 'confiable', 'premium')
+        $users = User::select('users.id', 'users.nombre', 'email', 'R.nombre AS rol', 'activo', 'locked', 'confiable')
             ->join('roles AS R', 'R.id', 'rol_id')
             ->orderBy('users.id', 'ASC')
             ->get();
@@ -471,14 +471,14 @@ class OtrosController extends Controller
 
     public function premium_user(Request $request)
     {
-        $user = Users::where('id', $request->id)->first();
+        $vehicle = Vehicles::where('id', $request->id)->first();
 
-        \DB::table('users')->where('id', $request->id)
-            ->update(['premium' => ($user->premium) ? 0 : 1, 'active_premium' => ($user->premium) ? null : new DateTime()]);
+        \DB::table('vehicles')->where('id', $request->id)
+            ->update(['premium' => ($vehicle->premium) ? 0 : 1, 'active_premium' => ($vehicle->premium) ? null : new DateTime()]);
 
         $result = [
             'status' => true,
-            'premium' => ($user->premium) ? false : true
+            'premium' => ($vehicle->premium) ? false : true
         ];
 
         return $result;

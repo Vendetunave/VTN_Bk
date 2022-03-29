@@ -34,7 +34,7 @@ class RemoveVehicles
     public function handle()
     {
         $fecha_actual = date("Y-m-d");
-        $fechaCaducada = date("Y-m-d", strtotime($fecha_actual."- 90 days")); 
+        $fechaCaducada = date("Y-m-d", strtotime($fecha_actual."- 60 days")); 
 
         $vehiculos = Vehicles::select('id')
             ->where('fecha_publicacion', '<', $fechaCaducada)

@@ -111,7 +111,7 @@ class VehiculosController extends Controller
             \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
             \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
             \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje'),
-            'U.premium'
+            'vehicles.premium'
         );
         if ($filtros['categoria'] === 'motos') {
             $selectArray[] = 'TM.nombre AS tipoMotoLabel';
@@ -127,7 +127,6 @@ class VehiculosController extends Controller
             ->join('tipo_precio AS TP', 'TP.id', 'vehicles.tipo_precio')
             ->join('combustibles AS MO', 'MO.id', 'vehicles.combustible')
             ->join('transmisiones AS TA', 'TA.id', 'vehicles.transmision')
-            ->join('users AS U', 'U.id', 'vehicles.vendedor_id')
             ->where('vehicles.activo', 1);
         /****/
 
@@ -359,7 +358,7 @@ class VehiculosController extends Controller
             $filtros['kilometraje'] ||
             $filtros['estado']
         ) {
-            $result->orderBy('U.active_premium', 'DESC');
+            $result->orderBy('vehicles.active_premium', 'DESC');
         }
 
         switch ($filtros['orden']) {
@@ -499,11 +498,10 @@ class VehiculosController extends Controller
             $vehiculosRelacionados = Vehicles::select('vehicles.*', 'I.nombre AS nameImage', 'I.extension', 'I.new_image')
                 ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
                 ->join('imagenes AS I', 'I.id', 'IV.id_image')
-                ->join('users AS U', 'U.id', 'vehicles.vendedor_id')
                 ->where('vehicles.activo', 1)
                 ->where('vehicles.modelo_id', $vehiculo->modelo_id)
                 ->where('vehicles.id', '<>', $vehiculo->id)
-                ->orderBy('U.active_premium', 'DESC')
+                ->orderBy('vehicles.active_premium', 'DESC')
                 ->groupBy('vehicles.id')
                 ->limit(10)
                 ->get();
@@ -965,7 +963,7 @@ class VehiculosController extends Controller
 
     public function get_all_vehicles()
     {
-        $vehicles = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+        $vehicles = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo', 'premium')
             ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
             ->join('imagenes AS I', 'I.id', 'IV.id_image')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
@@ -976,7 +974,7 @@ class VehiculosController extends Controller
             ->orderBy('vehicles.fecha_creacion', 'DESC')
             ->get();
 
-        $vehiclesApprove = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+        $vehiclesApprove = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo', 'premium')
             ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
             ->join('imagenes AS I', 'I.id', 'IV.id_image')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
@@ -987,7 +985,7 @@ class VehiculosController extends Controller
             ->orderBy('vehicles.fecha_creacion', 'DESC')
             ->get();
 
-        $vehiclesPromotional = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo')
+        $vehiclesPromotional = Vehicles::select('vehicles.id', 'vehicles.kilometraje', 'vehicles.ano', 'vehicles.confiable', 'vehicles.title', 'vehicles.precio', 'I.nombre AS nameImage', 'MA.nombre AS nombreMarca', 'M.nombre AS nombreModelo', 'premium')
             ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
             ->join('imagenes AS I', 'I.id', 'IV.id_image')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
