@@ -344,15 +344,19 @@ class VehiculosController extends Controller
         switch ($filtros['orden']) {
             case 1:
                 $result->orderBy('vehicles.condicion', 'ASC');
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
                 break;
             case 2:
                 $result->orderBy('vehicles.condicion', 'DESC');
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
                 break;
             case 3:
                 $result->orderBy('vehicles.precio', 'ASC');
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
                 break;
             case 4:
                 $result->orderBy('vehicles.precio', 'DESC');
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
                 break;
             default:
                 $result->orderBy('vehicles.fecha_publicacion', 'DESC');
@@ -383,11 +387,46 @@ class VehiculosController extends Controller
             $filtros['estado']
         ) {
             $orderBy = 'ORDER BY sub.active_premium DESC';
+            $orderBy2 = 'ORDER BY sub.fecha_publicacion DESC';
+            switch ($filtros['orden']) {
+                case 1:
+                    $orderBy2 = 'ORDER BY sub.condicion ASC, sub.fecha_publicacion DESC';
+                    break;
+                case 2:
+                    $orderBy2 = 'ORDER BY sub.condicion DESC, sub.fecha_publicacion DESC';
+                    break;
+                case 3:
+                    $orderBy2 = 'ORDER BY sub.precio ASC, sub.fecha_publicacion DESC';
+                    break;
+                case 4:
+                    $orderBy2 = 'ORDER BY sub.precio DESC, sub.fecha_publicacion DESC';
+                    break;
+                default:
+                    $orderBy2 = 'ORDER BY sub.fecha_publicacion DESC, sub.fecha_publicacion DESC';
+            }
+            
         }
 
         $total_records = count($result->groupBy('vehicles.id')->get());
         $sub = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20);
-        $result = \DB::table(\DB::raw("({$sub->toSql()}) as sub {$orderBy}"))->mergeBindings($sub->getQuery())->get();
+        $primary = \DB::table(\DB::raw("({$sub->toSql()}) as sub {$orderBy}"))->mergeBindings($sub->getQuery())->get();
+
+        $premiumSearch =  false;
+        foreach ($primary as $item) {
+            if (true == $item->premium ) {
+                $premiumSearch =  true;
+                break;
+            }
+        }
+
+        if (!$premiumSearch) {
+            $secondary = \DB::table(\DB::raw("({$sub->toSql()}) as sub {$orderBy2}"))->mergeBindings($sub->getQuery())->get();
+            $result = $secondary;
+        } else {
+            $result = $primary;
+        }
+
+        
 
         if (isset($total_modelos)) {
             $collectionModelos = collect($total_modelos);
@@ -599,7 +638,7 @@ class VehiculosController extends Controller
                 $sku = $vehiculosSku;
             }
 
-            $precioVehiculo = str_replace('.', '', $request->precio_vehiculo);
+            $precioVehiculo = str_replace('.', 'fecha_publicacion', $request->precio_vehiculo);
             $kmVehiculo = str_replace('.', '', $request->kilometraje_vehiculo);
             $cilindrajeVehiculo = str_replace('.', '', $request->cilindraje_vehiculo);
 
