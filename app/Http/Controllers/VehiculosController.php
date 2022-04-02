@@ -102,7 +102,7 @@ class VehiculosController extends Controller
         );
         $selectArray = array(
             'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion',
-            'vehicles.cilindraje', 'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'vehicles.fecha_publicacion', 'UC.nombre AS labelCiudad',
+            'vehicles.cilindraje', 'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'UC.nombre AS labelCiudad',
             'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca',
             'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TP.nombre AS tipoPrecioLabel',
             \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
@@ -339,6 +339,45 @@ class VehiculosController extends Controller
             $result->whereBetween('kilometraje', $arrayPrices);
         }
 
+        if(
+            $filtros['q'] ||
+            $filtros['ubicacion'] ||
+            $filtros['ciudad'] ||
+            $filtros['motor'] ||
+            $filtros['tipo'] ||
+            $filtros['marca'] ||
+            $filtros['modelo'] ||
+            $filtros['transmision'] ||
+            $filtros['ano'] ||
+            $filtros['promocion'] ||
+            $filtros['permuta'] ||
+            $filtros['blindaje'] ||
+            $filtros['anio'] ||
+            $filtros['precio'] ||
+            $filtros['kilometraje'] ||
+            $filtros['estado']
+        ) {
+            $result->orderBy('vehicles.premium', 'DESC');
+        }
+
+
+        switch ($filtros['orden']) {
+            case 1:
+                $result->orderBy('vehicles.condicion', 'ASC');
+                break;
+            case 2:
+                $result->orderBy('vehicles.condicion', 'DESC');
+                break;
+            case 3:
+                $result->orderBy('vehicles.precio', 'ASC');
+                break;
+            case 4:
+                $result->orderBy('vehicles.precio', 'DESC');
+                break;
+            default:
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
+        }
+
 
         if(
             $filtros['q'] ||
@@ -366,27 +405,8 @@ class VehiculosController extends Controller
             $result->where('vehicles.condicion', $filtros['estado']);
         }
 
-        $orderBy = '';
-        switch ($filtros['orden']) {
-            case 1:
-                $orderBy = 'sub.condicion ASC';
-                break;
-            case 2:
-                $orderBy = 'sub.condicion DESC';
-                break;
-            case 3:
-                $orderBy = 'sub.precio ASC';
-                break;
-            case 4:
-                $orderBy = 'sub.precio DESC';
-                break;
-            default:
-                $orderBy = 'sub.fecha_publicacion DESC';
-        }
-
         $total_records = count($result->groupBy('vehicles.id')->get());
-        $result = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20);
-        $sub = \DB::table(\DB::raw("({$result->toSql()}) as sub ORDER BY {$orderBy}"))->mergeBindings($result->getQuery())->get();
+        $result = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
 
         if (isset($total_modelos)) {
             $collectionModelos = collect($total_modelos);
@@ -421,7 +441,7 @@ class VehiculosController extends Controller
         $response = [
             'page' => $filtros['page'],
             'total_records' => $total_records,
-            'vehicles' => $sub,
+            'vehicles' => $result,
             'filtros' => $filtros,
             'contadores' => $contadores
         ];
