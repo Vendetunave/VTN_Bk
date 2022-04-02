@@ -102,7 +102,7 @@ class VehiculosController extends Controller
         );
         $selectArray = array(
             'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion',
-            'vehicles.cilindraje', 'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'UC.nombre AS labelCiudad',
+            'vehicles.cilindraje', 'vehicles.ano', 'vehicles.kilometraje', 'vehicles.placa', 'vehicles.fecha_publicacion', 'UC.nombre AS labelCiudad',
             'I.nombre AS nameImage', 'I.extension', 'I.new_image', 'M.nombre AS modelo', 'MA.nombre AS marca',
             'MO.nombre AS combustible', 'TA.nombre AS transmision', 'TP.nombre AS tipoPrecioLabel',
             \DB::raw('IF(vehicles.financiacion = 1, TRUE, FALSE) AS financiacion'),
@@ -111,7 +111,8 @@ class VehiculosController extends Controller
             \DB::raw('IF(vehicles.permuta = 1, TRUE, FALSE) AS permuta'),
             \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
             \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje'),
-            'vehicles.premium'
+            'vehicles.premium',
+            'vehicles.active_premium'
         );
         if ($filtros['categoria'] === 'motos') {
             $selectArray[] = 'TM.nombre AS tipoMotoLabel';
@@ -339,27 +340,6 @@ class VehiculosController extends Controller
             $result->whereBetween('kilometraje', $arrayPrices);
         }
 
-        if(
-            $filtros['q'] ||
-            $filtros['ubicacion'] ||
-            $filtros['ciudad'] ||
-            $filtros['motor'] ||
-            $filtros['tipo'] ||
-            $filtros['marca'] ||
-            $filtros['modelo'] ||
-            $filtros['transmision'] ||
-            $filtros['ano'] ||
-            $filtros['promocion'] ||
-            $filtros['permuta'] ||
-            $filtros['blindaje'] ||
-            $filtros['anio'] ||
-            $filtros['precio'] ||
-            $filtros['kilometraje'] ||
-            $filtros['estado']
-        ) {
-            $result->orderBy('vehicles.premium', 'DESC');
-        }
-
 
         switch ($filtros['orden']) {
             case 1:
@@ -378,7 +358,12 @@ class VehiculosController extends Controller
                 $result->orderBy('vehicles.fecha_publicacion', 'DESC');
         }
 
+        if ($filtros['estado']) {
+            //$estado = ($estado == 2) ? 'Usado' : 'Nuevo';
+            $result->where('vehicles.condicion', $filtros['estado']);
+        }
 
+        $orderBy = '';
         if(
             $filtros['q'] ||
             $filtros['ubicacion'] ||
@@ -397,16 +382,12 @@ class VehiculosController extends Controller
             $filtros['kilometraje'] ||
             $filtros['estado']
         ) {
-            $result->orderBy('vehicles.active_premium', 'DESC');
-        }
-
-        if ($filtros['estado']) {
-            //$estado = ($estado == 2) ? 'Usado' : 'Nuevo';
-            $result->where('vehicles.condicion', $filtros['estado']);
+            $orderBy = 'ORDER BY sub.active_premium DESC';
         }
 
         $total_records = count($result->groupBy('vehicles.id')->get());
-        $result = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
+        $sub = $result->groupBy('vehicles.id')->offset(($filtros['page'] - 1) * 20)->limit(20);
+        $result = \DB::table(\DB::raw("({$sub->toSql()}) as sub {$orderBy}"))->mergeBindings($sub->getQuery())->get();
 
         if (isset($total_modelos)) {
             $collectionModelos = collect($total_modelos);
