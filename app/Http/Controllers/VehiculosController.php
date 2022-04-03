@@ -639,7 +639,7 @@ class VehiculosController extends Controller
                 $sku = $vehiculosSku;
             }
 
-            $precioVehiculo = str_replace('.', 'fecha_publicacion', $request->precio_vehiculo);
+            $precioVehiculo = str_replace('.', '', $request->precio_vehiculo);
             $kmVehiculo = str_replace('.', '', $request->kilometraje_vehiculo);
             $cilindrajeVehiculo = str_replace('.', '', $request->cilindraje_vehiculo);
 
