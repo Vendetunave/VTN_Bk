@@ -368,6 +368,7 @@ class VehiculosController extends Controller
         }
 
         $orderBy = '';
+        $orderBy2 = '';
         if(
             $filtros['q'] ||
             $filtros['ubicacion'] ||
