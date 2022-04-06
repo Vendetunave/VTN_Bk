@@ -474,7 +474,7 @@ class OtrosController extends Controller
         $vehicle = Vehicles::where('id', $request->id)->first();
 
         \DB::table('vehicles')->where('id', $request->id)
-            ->update(['premium' => ($vehicle->premium) ? 0 : 1, 'active_premium' => ($vehicle->premium) ? null : new DateTime()]);
+            ->update(['premium' => ($vehicle->premium) ? 0 : 1, 'active_premium' => ($vehicle->premium) ? "0001-01-01 01:01:01" : new DateTime()]);
 
         $result = [
             'status' => true,
