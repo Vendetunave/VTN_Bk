@@ -369,7 +369,8 @@ class VehiculosController extends Controller
             $filtros['anio'] ||
             $filtros['precio'] ||
             $filtros['kilometraje'] ||
-            $filtros['estado']
+            $filtros['estado'] ||
+            $filtros['vendedor']
         ) {
             $result->orderBy('active_premium', 'DESC');
         }
