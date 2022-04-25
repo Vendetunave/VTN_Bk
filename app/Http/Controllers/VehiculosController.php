@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManagerStatic as Image;
 
+use App\Models\Users;
 use App\Models\Vehicles;
 use App\Models\imagenes;
 use App\Models\Marcas;
@@ -98,7 +99,8 @@ class VehiculosController extends Controller
             'blindaje' => $request->query('blindaje') ? $request->query('blindaje') : false,
             'ano' => $request->query('ano') ? $request->query('ano') : null,
             'anio' => $request->query('anio') ? $request->query('anio') : null,
-            'q' => $request->query('q') ? $request->query('q') : null
+            'q' => $request->query('q') ? $request->query('q') : null,
+            'vendedor' => $request->query('vendedor') ? $request->query('vendedor') : null
         );
         $selectArray = array(
             'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion',
@@ -112,14 +114,16 @@ class VehiculosController extends Controller
             \DB::raw('IF(vehicles.promocion = 1, TRUE, FALSE) AS promocion'),
             \DB::raw('IF(vehicles.peritaje <> "", vehicles.peritaje, FALSE) AS peritaje'),
             'vehicles.premium',
-            'vehicles.active_premium'
+            'vehicles.active_premium',
         );
-        if ($filtros['categoria'] === 'motos') {
+
+        if ($filtros['vendedor'] || $filtros['categoria'] === 'motos') {
             $selectArray[] = 'TM.nombre AS tipoMotoLabel';
         }
         $result = Vehicles::select(
             $selectArray
         )
+            
             ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
             ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
             ->join('ubicacion_departamentos AS UD', 'UD.id', 'UC.id_departamento')
@@ -131,9 +135,8 @@ class VehiculosController extends Controller
             ->where('vehicles.activo', 1);
         /****/
 
-
-        if ($filtros['categoria'] === 'motos') {
-            $result->join('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
+        if ($filtros['vendedor'] || $filtros['categoria'] === 'motos') {
+            $result->leftJoin('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto');
         }
 
         //Filtros complete
@@ -142,7 +145,7 @@ class VehiculosController extends Controller
         $filteredMarcas = $collection;
 
 
-        if ($filtros['categoria']) {
+        if (!$filtros['vendedor'] && $filtros['categoria']) {
             $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
         }
 
@@ -153,7 +156,7 @@ class VehiculosController extends Controller
 
 
         //Tag search Filter
-        if ($filtros['q']) {
+        if (!$filtros['vendedor'] && $filtros['q']) {
             $url = "https://suggestqueries.google.com/complete/search?output=toolbar&hl=es&q=" .  str_replace(" ", "%20", $filtros['q'])  . "&gl=co";
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -280,73 +283,76 @@ class VehiculosController extends Controller
                 }
             });
         }
-        if ($filtros['ubicacion']) {
+        if (!$filtros['vendedor'] && $filtros['ubicacion']) {
             $result->where('UD.nombre', $filtros['ubicacion']);
         }
-        if ($filtros['ciudad']) {
+        if (!$filtros['vendedor'] && $filtros['ciudad']) {
             $result->where('UC.nombre', $filtros['ciudad']);
         }
-        if ($filtros['motor']) {
+        if (!$filtros['vendedor'] && $filtros['motor']) {
             $result->where('MO.nombre', $filtros['motor']);
         }
-        if ($filtros['tipo']) {
+        if (!$filtros['vendedor'] && $filtros['tipo']) {
             $result->where('vehicles.tipo_moto', $this->parse_slug_id_tipo($filtros['tipo']));
         }
         //Cateoria Filter
 
-        if ($filtros['marca']) {
+        if (!$filtros['vendedor'] && $filtros['marca']) {
             $total_modelos = Modelos::select('modelos.id', 'modelos.nombre')
                 ->join('marcas AS MA', 'MA.id', 'marca_id')
                 ->where('MA.nombre', $filtros['marca'])
                 ->get();
             $result->where('MA.nombre', $filtros['marca']);
         }
-        if ($filtros['modelo']) {
+        if (!$filtros['vendedor'] && $filtros['modelo']) {
             $result->where('M.nombre', $filtros['modelo']);
         }
-        if ($filtros['transmision']) {
+        if (!$filtros['vendedor'] && $filtros['transmision']) {
             $result->where('TA.nombre', $filtros['transmision']);
         }
-        if ($filtros['ano']) {
+        if (!$filtros['vendedor'] && $filtros['ano']) {
             $result->where('ano', $filtros['ano']);
         }
         //
-        if ($filtros['promocion']) {
+        if (!$filtros['vendedor'] && $filtros['promocion']) {
             $parseBoolean = $filtros['promocion'] ? 1 : 0;
             $result->where('vehicles.promocion', $parseBoolean)->where('vehicles.aprobado_promocion', 1);
         }
-        if ($filtros['permuta']) {
+        if (!$filtros['vendedor'] && $filtros['permuta']) {
             $parseBoolean = $filtros['permuta'] ? 1 : 0;
             $result->where('vehicles.permuta', $parseBoolean);
         }
-        if ($filtros['blindaje']) {
+        if (!$filtros['vendedor'] && $filtros['blindaje']) {
             $parseBoolean = $filtros['blindaje'] ? 1 : 0;
             $result->where('vehicles.blindado', $parseBoolean);
         }
         //
-        if ($filtros['anio']) {
+        if (!$filtros['vendedor'] && $filtros['anio']) {
             $decodeParam = $filtros['anio'];
             $arrayPrices = explode(":", $decodeParam);
             $result->whereBetween('ano', $arrayPrices);
         }
-        if ($filtros['precio']) {
+        if (!$filtros['vendedor'] && $filtros['precio']) {
             $decodeParam = $filtros['precio'];
             $arrayPrices = explode(":", $decodeParam);
             $result->whereBetween('precio', $arrayPrices);
         }
-        if ($filtros['kilometraje']) {
+        if (!$filtros['vendedor'] && $filtros['kilometraje']) {
             $decodeParam = $filtros['kilometraje'];
             $arrayPrices = explode(":", $decodeParam);
             $result->whereBetween('kilometraje', $arrayPrices);
         }
 
-        if ($filtros['estado']) {
+        if (!$filtros['vendedor'] && $filtros['estado']) {
             //$estado = ($estado == 2) ? 'Usado' : 'Nuevo';
             $result->where('vehicles.condicion', $filtros['estado']);
         }
 
-        $orderBy = '';
-        $orderBy2 = '';
+        if ($filtros['vendedor']) {
+            $vendedor = explode("-", $filtros['vendedor']);
+            $result->where('vehicles.vendedor_id', $vendedor[COUNT($vendedor) - 1]);
+        }
+
         if(
             $filtros['q'] ||
             $filtros['ubicacion'] ||
@@ -400,7 +406,7 @@ class VehiculosController extends Controller
         $total_departamentos = ubicacion_departamentos::orderBy('nombre')->get();
         $filterredDepartamentos = collect($total_departamentos);
 
-        if ($filtros['ubicacion']) {
+        if (!$filtros['vendedor'] && $filtros['ubicacion']) {
             $total_ciudades = ubicacion_ciudades::select('ubicacion_ciudades.id', 'ubicacion_ciudades.nombre')
                 ->join('ubicacion_departamentos AS UD', 'UD.id', 'ubicacion_ciudades.id_departamento')
                 ->where('UD.nombre', $filtros['ubicacion'])
@@ -419,13 +425,23 @@ class VehiculosController extends Controller
             'ubicacion' => $filterredDepartamentos->countBy('nombre'),
             'ciudad' => (isset($filterredCiudades)) ? $filterredCiudades->countBy('nombre') : []
         );
-        if ($filtros['categoria'] === 'motos') {
+        if (!$filtros['vendedor'] && $filtros['categoria'] === 'motos') {
             $contadores['tipo'] = $filteredMarcas->countBy('tipoMotoLabel');
         }
+
+        $vendedor = null;
+        if ($filtros['vendedor']) {
+            $vendedorId = explode("-", $filtros['vendedor']);
+            $vendedor = Users::select('nombre', 'facebook', 'instagram', 'tiktok', 'image')
+            ->where('id', $vendedorId[COUNT($vendedorId) - 1])
+            ->first();
+        }
+
         $response = [
             'page' => $filtros['page'],
             'total_records' => $total_records,
             'vehicles' => $result,
+            'vendedor' => $vendedor,
             'filtros' => $filtros,
             'contadores' => $contadores
         ];
@@ -466,8 +482,11 @@ class VehiculosController extends Controller
                 'TP.nombre AS tipoPrecioLabel',
                 'I.nombre AS nameImage',
                 'I.extension',
-                'I.new_image'
+                'I.new_image',
+                'U.id AS sellerId',
+                'U.nombre AS sellerName'
             )
+                ->join('users AS U', 'U.id', 'vehicles.vendedor_id')
                 ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
                 ->join('tipo_vehiculos AS TV', 'TV.id', 'vehicles.tipo_vehiculo')
                 ->leftJoin('tipo_moto AS TM', 'TM.id', 'vehicles.tipo_moto')

@@ -39,7 +39,7 @@ class UsuarioController extends Controller
 
     public function profile($id)
     {
-        $result = Users::select('nombre', 'telefono', 'email', 'genero', 'fecha_nacimiento', 'image')
+        $result = Users::select('nombre', 'telefono', 'email', 'genero', 'fecha_nacimiento', 'image', 'facebook', 'instagram', 'tiktok')
             ->where('id', $id)
             ->first();
         $result->status = true;
@@ -329,6 +329,9 @@ class UsuarioController extends Controller
                     'telefono' => $request->telefono,
                     'genero' => $request->genero,
                     'fecha_nacimiento' => $request->fecha_nacimiento,
+                    'facebook' => $request->facebook,
+                    'instagram' => $request->instagram,
+                    'tiktok' => $request->tiktok
                 ]);
         } else {
             $user = \DB::table('users')->where('id', $request->user_id)
@@ -337,6 +340,9 @@ class UsuarioController extends Controller
                     'telefono' => $request->telefono,
                     'genero' => $request->genero,
                     'fecha_nacimiento' => $request->fecha_nacimiento,
+                    'facebook' => $request->facebook,
+                    'instagram' => $request->instagram,
+                    'tiktok' => $request->tiktok,
                     'password' => Hash::make($request->new_password),
                     'password_encrypt' => false
                 ]);
