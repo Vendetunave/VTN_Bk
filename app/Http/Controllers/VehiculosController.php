@@ -289,61 +289,61 @@ class VehiculosController extends Controller
         if (!$filtros['vendedor'] && $filtros['ciudad']) {
             $result->where('UC.nombre', $filtros['ciudad']);
         }
-        if (!$filtros['vendedor'] && $filtros['motor']) {
+        if ($filtros['motor']) {
             $result->where('MO.nombre', $filtros['motor']);
         }
-        if (!$filtros['vendedor'] && $filtros['tipo']) {
+        if ($filtros['tipo']) {
             $result->where('vehicles.tipo_moto', $this->parse_slug_id_tipo($filtros['tipo']));
         }
         //Cateoria Filter
 
-        if (!$filtros['vendedor'] && $filtros['marca']) {
+        if ($filtros['marca']) {
             $total_modelos = Modelos::select('modelos.id', 'modelos.nombre')
                 ->join('marcas AS MA', 'MA.id', 'marca_id')
                 ->where('MA.nombre', $filtros['marca'])
                 ->get();
             $result->where('MA.nombre', $filtros['marca']);
         }
-        if (!$filtros['vendedor'] && $filtros['modelo']) {
+        if ($filtros['modelo']) {
             $result->where('M.nombre', $filtros['modelo']);
         }
-        if (!$filtros['vendedor'] && $filtros['transmision']) {
+        if ($filtros['transmision']) {
             $result->where('TA.nombre', $filtros['transmision']);
         }
-        if (!$filtros['vendedor'] && $filtros['ano']) {
+        if ($filtros['ano']) {
             $result->where('ano', $filtros['ano']);
         }
         //
-        if (!$filtros['vendedor'] && $filtros['promocion']) {
+        if ($filtros['promocion']) {
             $parseBoolean = $filtros['promocion'] ? 1 : 0;
             $result->where('vehicles.promocion', $parseBoolean)->where('vehicles.aprobado_promocion', 1);
         }
-        if (!$filtros['vendedor'] && $filtros['permuta']) {
+        if ($filtros['permuta']) {
             $parseBoolean = $filtros['permuta'] ? 1 : 0;
             $result->where('vehicles.permuta', $parseBoolean);
         }
-        if (!$filtros['vendedor'] && $filtros['blindaje']) {
+        if ($filtros['blindaje']) {
             $parseBoolean = $filtros['blindaje'] ? 1 : 0;
             $result->where('vehicles.blindado', $parseBoolean);
         }
         //
-        if (!$filtros['vendedor'] && $filtros['anio']) {
+        if ($filtros['anio']) {
             $decodeParam = $filtros['anio'];
             $arrayPrices = explode(":", $decodeParam);
             $result->whereBetween('ano', $arrayPrices);
         }
-        if (!$filtros['vendedor'] && $filtros['precio']) {
+        if ($filtros['precio']) {
             $decodeParam = $filtros['precio'];
             $arrayPrices = explode(":", $decodeParam);
             $result->whereBetween('precio', $arrayPrices);
         }
-        if (!$filtros['vendedor'] && $filtros['kilometraje']) {
+        if ($filtros['kilometraje']) {
             $decodeParam = $filtros['kilometraje'];
             $arrayPrices = explode(":", $decodeParam);
             $result->whereBetween('kilometraje', $arrayPrices);
         }
 
-        if (!$filtros['vendedor'] && $filtros['estado']) {
+        if ($filtros['estado']) {
             //$estado = ($estado == 2) ? 'Usado' : 'Nuevo';
             $result->where('vehicles.condicion', $filtros['estado']);
         }
@@ -433,7 +433,7 @@ class VehiculosController extends Controller
         $vendedor = null;
         if ($filtros['vendedor']) {
             $vendedorId = explode("-", $filtros['vendedor']);
-            $vendedor = Users::select('nombre', 'facebook', 'instagram', 'tiktok', 'image')
+            $vendedor = Users::select('id', 'nombre', 'facebook', 'instagram', 'tiktok', 'image', 'telefono', 'website')
             ->where('id', $vendedorId[COUNT($vendedorId) - 1])
             ->first();
         }
