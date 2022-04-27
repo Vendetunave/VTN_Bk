@@ -145,7 +145,7 @@ class VehiculosController extends Controller
         $filteredMarcas = $collection;
 
 
-        if (!$filtros['vendedor'] && $filtros['categoria']) {
+        if ($filtros['categoria']) {
             $result->where('vehicles.tipo_vehiculo', $this->parse_slug_id($filtros['categoria']));
         }
 
