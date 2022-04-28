@@ -42,7 +42,7 @@ class AuthController extends Controller
         }
     }
     public function login(Request $request){
-        $user = User::where('email', $request->email)->first();
+        $user = User::select('id', 'nombre', 'image', 'email', 'telefono', 'genero', 'fecha_nacimiento', 'activo', 'locked', 'rol_id')->where('email', $request->email)->first();
         if($user->password_encrypt){
             if(md5($request->password) === $user->password){
                 //Update with new encription
@@ -93,7 +93,7 @@ class AuthController extends Controller
     }
 
     public function login_admin(Request $request){
-        $user = User::where('email', $request->email)->where('rol_id', '<>', 2)->first();
+        $user = User::select('id', 'nombre', 'image', 'email', 'telefono', 'genero', 'fecha_nacimiento', 'activo', 'locked', 'rol_id')->where('email', $request->email)->where('rol_id', '<>', 2)->first();
         if($user->password_encrypt){
             if(md5($request->password) === $user->password){
                 //Update with new encription
