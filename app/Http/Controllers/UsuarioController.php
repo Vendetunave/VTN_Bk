@@ -329,10 +329,10 @@ class UsuarioController extends Controller
                     'telefono' => $request->telefono,
                     'genero' => $request->genero,
                     'fecha_nacimiento' => $request->fecha_nacimiento,
-                    'website' => $request->website,
-                    'facebook' => $request->facebook,
-                    'instagram' => $request->instagram,
-                    'tiktok' => $request->tiktok
+                    'website' => $request->get('website', ''),
+                    'facebook' => $request->get('facebook', ''),
+                    'instagram' => $request->get('instagram', ''),
+                    'tiktok' => $request->get('tiktok', '')
                 ]);
         } else {
             $user = \DB::table('users')->where('id', $request->user_id)
@@ -341,10 +341,10 @@ class UsuarioController extends Controller
                     'telefono' => $request->telefono,
                     'genero' => $request->genero,
                     'fecha_nacimiento' => $request->fecha_nacimiento,
-                    'website' => $request->website,
-                    'facebook' => $request->facebook,
-                    'instagram' => $request->instagram,
-                    'tiktok' => $request->tiktok,
+                    'website' => $request->get('website', ''),
+                    'facebook' => $request->get('facebook', ''),
+                    'instagram' => $request->get('instagram', ''),
+                    'tiktok' => $request->get('tiktok', ''),
                     'password' => Hash::make($request->new_password),
                     'password_encrypt' => false
                 ]);
