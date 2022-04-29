@@ -32,6 +32,10 @@ class AuthController extends Controller
             $user->password = Hash::make($plainPassword);
             $user->password_encrypt = false;
             $user->rol_id = 2;
+            $user->instagram = null;
+            $user->facebook = null;
+            $user->tiktok = null;
+            $user->website = null;
             $user->save();
             
             //return successful response
