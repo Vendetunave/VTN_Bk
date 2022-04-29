@@ -485,7 +485,8 @@ class VehiculosController extends Controller
                 'I.extension',
                 'I.new_image',
                 'U.id AS sellerId',
-                'U.nombre AS sellerName'
+                'U.nombre AS sellerName',
+                'U.confiable AS sellerVerified',
             )
                 ->join('users AS U', 'U.id', 'vehicles.vendedor_id')
                 ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
