@@ -433,7 +433,7 @@ class VehiculosController extends Controller
         $vendedor = null;
         if ($filtros['vendedor']) {
             $vendedorId = explode("-", $filtros['vendedor']);
-            $vendedor = Users::select('id', 'nombre', 'facebook', 'instagram', 'tiktok', 'image', 'telefono', 'website')
+            $vendedor = Users::select('id', 'nombre', 'facebook', 'instagram', 'tiktok', 'image', 'telefono', 'website', 'confiable')
             ->where('id', $vendedorId[COUNT($vendedorId) - 1])
             ->first();
         }
