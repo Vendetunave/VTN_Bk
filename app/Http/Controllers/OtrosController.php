@@ -259,9 +259,11 @@ class OtrosController extends Controller
         $vehiculos = Vehicles::select('id', 'title')->where('activo', 1)->get();
         $fichaTecnica = DataSheet::select('id', 'title')->where('active', 1)->get();
         $preguntas = Pregunta::select('id', 'titulo')->where('aprobado', 1)->get();
+        $users = Users::select('id', 'nombre')->get();
 
         $response = [
             'vehiculos' => $vehiculos,
+            'users' => $users,
             'ficha_tecnica' => $fichaTecnica,
             'preguntas' => $preguntas
         ];
