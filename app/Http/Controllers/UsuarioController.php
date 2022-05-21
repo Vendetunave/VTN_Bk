@@ -104,6 +104,12 @@ class UsuarioController extends Controller
     public function publicaciones(Request $request, $id)
     {
         /****/
+
+        $filtros = array(
+            'page' => $request->query('page') ? $request->query('page') : 1,
+            'q' => $request->query('q') ? $request->query('q') : null
+        );
+
         $vehicles = Vehicles::select(
             'vehicles.id',
             'vehicles.title',
@@ -118,14 +124,22 @@ class UsuarioController extends Controller
             'I.extension',
             'M.nombre AS modeloLabel'
         )
-            ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
-            ->leftJoin('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
-            ->leftJoin('imagenes AS I', 'I.id', 'IV.id_image')
-            ->leftJoin('modelos AS M', 'M.id', 'vehicles.modelo_id')
-            ->where('vehicles.vendedor_id', $id)
-            ->orderBy('vehicles.fecha_creacion', 'DESC')
-            ->groupBy('vehicles.id')
-            ->get();
+            ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->where('vehicles.vendedor_id', $id);
+            if ($filtros['q']) {
+                $vehicles = $vehicles->where('vehicles.title', 'LIKE', '%' . rtrim(ltrim($filtros['q'])) . '%');
+            }
+            $vehicles = $vehicles->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->groupBy('vehicles.id');
+        $total_records = count($vehicles->get());
+        if ($filtros['page']) {
+            $vehicles = $vehicles->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
+        } else {
+            $vehicles = $vehicles->get();
+        }
 
         // $accesorios = Accesorios::select(
         //     'accesorios.id',
@@ -149,7 +163,9 @@ class UsuarioController extends Controller
         //     ->get();
 
         $result = [
+            'total_records' => $total_records,
             'vehiculos' => $vehicles,
+            'filtros' => $filtros
             // 'accesorios' => $accesorios
         ];
         return $result;
