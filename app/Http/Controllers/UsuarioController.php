@@ -135,7 +135,7 @@ class UsuarioController extends Controller
             $vehicles = $vehicles->orderBy('vehicles.fecha_creacion', 'DESC')
             ->groupBy('vehicles.id');
         $total_records = count($vehicles->get());
-        if ($filtros['page']) {
+        if ($request->query('page', null)) {
             $vehicles = $vehicles->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
         } else {
             $vehicles = $vehicles->get();
