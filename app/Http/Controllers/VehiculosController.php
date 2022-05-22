@@ -658,7 +658,7 @@ class VehiculosController extends Controller
                 'financiacion' => $request->financiacion,
                 'tipo_moto' => ($request->tipo_vehiculo === 5) ? 1 : 0,
                 'blindado' => ($request->blindado_vehiculo == 2) ? 0 : $request->blindado_vehiculo,
-                'peritaje' => ($request->peritaje == 0) ? null : $request->peritaje,
+                'peritaje' => ($request->peritaje == 0) ? null : str_replace('https://vendetunave.s3.amazonaws.com/vendetunave/pdf/peritaje/', '', $request->peritaje),
                 'confiable' => $user->confiable
             ]);
 
@@ -847,7 +847,7 @@ class VehiculosController extends Controller
                 'financiacion' => $request->financiacion,
                 'tipo_moto' => $request->tipo_moto,
                 'republicar' => $republicar,
-                'peritaje' => $request->peritaje,
+                'peritaje' => str_replace('https://vendetunave.s3.amazonaws.com/vendetunave/pdf/peritaje/', '', $request->peritaje),
             ]);
 
             $images = $request->images;
