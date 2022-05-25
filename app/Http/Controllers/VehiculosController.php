@@ -100,7 +100,8 @@ class VehiculosController extends Controller
             'ano' => $request->query('ano') ? $request->query('ano') : null,
             'anio' => $request->query('anio') ? $request->query('anio') : null,
             'q' => $request->query('q') ? $request->query('q') : null,
-            'vendedor' => $request->query('vendedor') ? $request->query('vendedor') : null
+            'vendedor' => $request->query('vendedor') ? $request->query('vendedor') : null,
+            'placa' => $request->query('placa') ? $request->query('placa') : null
         );
         $selectArray = array(
             'vehicles.id', 'vehicles.tipo_moto', 'vehicles.title', 'vehicles.descripcion', 'vehicles.precio', 'vehicles.condicion',
@@ -343,6 +344,27 @@ class VehiculosController extends Controller
             $result->whereBetween('kilometraje', $arrayPrices);
         }
 
+        if ($filtros['placa']) {
+            $placa = $filtros['placa'];
+            if ($placa === "Par") {
+                $placa = ["0","2","4","6","8"];
+            }
+            if ($placa === "Impar") {
+                $placa = ["1","3","5","7","9"];
+            }
+
+            if (is_array($placa)) {
+                $result->Where(function ($query) use ($placa) {
+                    foreach ($placa as $optionsPlaca) {
+                        $query->orWhere('vehicles.placa', $optionsPlaca);
+                    }
+                });
+            } else {
+                $result->where('vehicles.placa', $placa);
+
+            }
+        }
+
         if ($filtros['estado']) {
             //$estado = ($estado == 2) ? 'Usado' : 'Nuevo';
             $result->where('vehicles.condicion', $filtros['estado']);
@@ -353,26 +375,29 @@ class VehiculosController extends Controller
             $result->where('vehicles.vendedor_id', $vendedor[COUNT($vendedor) - 1]);
         }
 
-        if(
-            $filtros['q'] ||
-            $filtros['ubicacion'] ||
-            $filtros['ciudad'] ||
-            $filtros['motor'] ||
-            $filtros['tipo'] ||
-            $filtros['marca'] ||
-            $filtros['modelo'] ||
-            $filtros['transmision'] ||
-            $filtros['ano'] ||
-            $filtros['promocion'] ||
-            $filtros['permuta'] ||
-            $filtros['blindaje'] ||
-            $filtros['anio'] ||
-            $filtros['precio'] ||
-            $filtros['kilometraje'] ||
-            $filtros['estado'] ||
-            $filtros['vendedor']
-        ) {
-            $result->orderBy('active_premium', 'DESC');
+        if ($filtros['orden'] != 3 && $filtros['orden'] != 4) {
+            if(
+                $filtros['q'] ||
+                $filtros['ubicacion'] ||
+                $filtros['ciudad'] ||
+                $filtros['motor'] ||
+                $filtros['tipo'] ||
+                $filtros['marca'] ||
+                $filtros['modelo'] ||
+                $filtros['transmision'] ||
+                $filtros['ano'] ||
+                $filtros['promocion'] ||
+                $filtros['permuta'] ||
+                $filtros['blindaje'] ||
+                $filtros['anio'] ||
+                $filtros['precio'] ||
+                $filtros['kilometraje'] ||
+                $filtros['estado'] ||
+                $filtros['vendedor'] ||
+                $filtros['placa']
+            ) {
+                $result->orderBy('active_premium', 'DESC');
+            }
         }
 
         switch ($filtros['orden']) {
