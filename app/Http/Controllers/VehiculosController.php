@@ -360,8 +360,11 @@ class VehiculosController extends Controller
                     }
                 });
             } else {
-                $result->where('vehicles.placa', $placa);
-
+                if ($placa === "cero") {
+                    $result->where('vehicles.placa', "0");
+                } else {
+                    $result->where('vehicles.placa', $placa);
+                }
             }
         }
 
