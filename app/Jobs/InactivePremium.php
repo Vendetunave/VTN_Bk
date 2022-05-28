@@ -7,7 +7,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 
 use App\Models\Vehicles;
-use DateTime
+use DateTime;
 
 class InactivePremium
 {
@@ -35,6 +35,7 @@ class InactivePremium
 
         $vehicle = Vehicles::select('id')
             ->where('active_premium', '<', $fechaCaducada)
+            ->where('premium', 1)
             ->get();
         
         Vehicles::whereIn('id', $vehicle)->update([
@@ -45,12 +46,12 @@ class InactivePremium
 
         $fechaRelanzamiento = date("Y-m-d", strtotime($fecha_actual."- 7 days")); 
 
-        $vehicle = Vehicles::select('id')
+        $vehicleRelanzamiento = Vehicles::select('id')
             ->where('order_premium', '<', $fechaRelanzamiento)
             ->where('premium', 1)
             ->get();
-        
-        Vehicles::whereIn('id', $vehicle)->update([
+
+        Vehicles::whereIn('id', $vehicleRelanzamiento)->update([
             'order_premium' => new DateTime()
         ]);
     }
