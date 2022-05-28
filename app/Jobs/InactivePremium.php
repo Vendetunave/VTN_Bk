@@ -38,7 +38,7 @@ class InactivePremium
             ->where('premium', 1)
             ->get();
         
-        Vehicles::whereIn('id', $vehicle)->update([
+        \DB::table('vehicles')->whereIn('id', $vehicle)->update([
             'premium' => 0,
             'active_premium' => "0001-01-01 01:01:01",
             'order_premium' => "0001-01-01 01:01:01"
@@ -51,7 +51,7 @@ class InactivePremium
             ->where('premium', 1)
             ->get();
 
-        Vehicles::whereIn('id', $vehicleRelanzamiento)->update([
+        \DB::table('vehicles')->whereIn('id', $vehicleRelanzamiento)->update([
             'order_premium' => new DateTime()
         ]);
     }
