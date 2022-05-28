@@ -399,7 +399,7 @@ class VehiculosController extends Controller
                 $filtros['vendedor'] ||
                 $filtros['placa']
             ) {
-                $result->orderBy('active_premium', 'DESC');
+                $result->orderBy('order_premium', 'DESC');
             }
         }
 
@@ -557,7 +557,7 @@ class VehiculosController extends Controller
                 ->where('vehicles.activo', 1)
                 ->where('vehicles.modelo_id', $vehiculo->modelo_id)
                 ->where('vehicles.id', '<>', $vehiculo->id)
-                ->orderBy('vehicles.active_premium', 'DESC')
+                ->orderBy('vehicles.order_premium', 'DESC')
                 ->groupBy('vehicles.id')
                 ->limit(10)
                 ->get();

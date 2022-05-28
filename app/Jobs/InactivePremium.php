@@ -7,6 +7,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 
 use App\Models\Vehicles;
+use DateTime
 
 class InactivePremium
 {
@@ -36,6 +37,21 @@ class InactivePremium
             ->where('active_premium', '<', $fechaCaducada)
             ->get();
         
-        Vehicles::whereIn('id', $vehicle)->update(['premium' => 0, 'active_premium' => null]);
+        Vehicles::whereIn('id', $vehicle)->update([
+            'premium' => 0,
+            'active_premium' => "0001-01-01 01:01:01",
+            'order_premium' => "0001-01-01 01:01:01"
+        ]);
+
+        $fechaRelanzamiento = date("Y-m-d", strtotime($fecha_actual."- 7 days")); 
+
+        $vehicle = Vehicles::select('id')
+            ->where('order_premium', '<', $fechaRelanzamiento)
+            ->where('premium', 1)
+            ->get();
+        
+        Vehicles::whereIn('id', $vehicle)->update([
+            'order_premium' => new DateTime()
+        ]);
     }
 }
