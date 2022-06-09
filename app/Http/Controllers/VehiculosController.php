@@ -966,6 +966,25 @@ class VehiculosController extends Controller
         }
     }
 
+    public function active_vehicle(Request $request)
+    {
+        try {
+            $vehicle = \DB::table('vehicles')->where('id', $request->id)->update(['activo' => 1]);
+
+            $response = [
+                'status' => true,
+            ];
+
+            return $response;
+        } catch (\Throwable $th) {
+            $response = [
+                'status' => false,
+            ];
+
+            return $response;
+        }
+    }
+
     public function upload_vehicle_image(Request $request)
     {
         try {

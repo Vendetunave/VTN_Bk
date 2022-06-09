@@ -27,6 +27,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     $router->post('vehicle_update', 'VehiculosController@update_vehicle');
     $router->post('vehicle_remove', 'VehiculosController@remove_vehicle');
     $router->post('vehicle_sold', 'VehiculosController@sold_vehicle');
+    $router->post('vehicle_active', 'VehiculosController@active_vehicle');
     $router->post('upload_vehicle_image', 'VehiculosController@upload_vehicle_image');
     $router->post('upload_vehicle_peritaje', 'VehiculosController@upload_vehicle_peritaje');
 

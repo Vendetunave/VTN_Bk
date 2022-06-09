@@ -35,15 +35,34 @@ class RemoveVehicles
     {
         $fecha_actual = date("Y-m-d");
         $fechaCaducada = date("Y-m-d", strtotime($fecha_actual."- 60 days")); 
+        $fechaCaducadaInactivo = date("Y-m-d", strtotime($fecha_actual."- 90 days")); 
 
         $vehiculos = Vehicles::select('id')
             ->where('fecha_publicacion', '<', $fechaCaducada)
             ->get();
+
+        $usuarios = Vehicles::select('vendedor_id')
+            ->where('fecha_publicacion', '<', $fechaCaducada)
+            ->groupBy('vendedor_id')
+            ->get();
+
+        \DB::table('vehicles')->whereIn('id', $vehiculos)->update([
+            'activo' => 3,
+        ]);
+
+        \DB::table('users')->whereIn('id', $usuarios)->update([
+            'notification' => 1,
+        ]);
+
+        $vehiculosIcativos = Vehicles::select('id')
+            ->where('fecha_publicacion', '<', $fechaCaducadaInactivo)
+            ->where('activo', 1)
+            ->get();
         
-        Busquedas::whereIn('vehiculo_id', $vehiculos)->delete();
-        Favoritos::whereIn('vehiculo_id', $vehiculos)->delete();
-        imagenes::whereIn('id_vehicle', $vehiculos)->delete();
-        Imagenes_vehiculo::whereIn('id_vehicle', $vehiculos)->delete();
-        Vehicles::whereIn('id', $vehiculos)->delete();
+        Busquedas::whereIn('vehiculo_id', $vehiculosIcativos)->delete();
+        Favoritos::whereIn('vehiculo_id', $vehiculosIcativos)->delete();
+        imagenes::whereIn('id_vehicle', $vehiculosIcativos)->delete();
+        Imagenes_vehiculo::whereIn('id_vehicle', $vehiculosIcativos)->delete();
+        Vehicles::whereIn('id', $vehiculosIcativos)->delete();
     }
 }

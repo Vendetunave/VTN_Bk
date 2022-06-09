@@ -39,7 +39,7 @@ class UsuarioController extends Controller
 
     public function profile($id)
     {
-        $result = Users::select('nombre', 'telefono', 'email', 'genero', 'fecha_nacimiento', 'image', 'facebook', 'instagram', 'tiktok', 'website')
+        $result = Users::select('nombre', 'telefono', 'email', 'genero', 'fecha_nacimiento', 'image', 'facebook', 'instagram', 'tiktok', 'website', 'notification')
             ->where('id', $id)
             ->first();
         $result->status = true;
@@ -104,10 +104,16 @@ class UsuarioController extends Controller
     public function publicaciones(Request $request, $id)
     {
         /****/
+        \DB::table('users')->where('id', $id)->update([
+            'notification' => 0,
+        ]);
 
         $filtros = array(
+            'tab' => $request->query('tab') ? 0 : $request->query('tab'),
             'page' => $request->query('page') ? $request->query('page') : 1,
-            'q' => $request->query('q') ? $request->query('q') : null
+            'q' => $request->query('q') ? $request->query('q') : null,
+            'page_inactive' => $request->query('page_inactive') ? $request->query('page_inactive') : 1,
+            'q_inactive' => $request->query('q_inactive') ? $request->query('q_inactive') : null
         );
 
         $vehicles = Vehicles::select(
@@ -128,45 +134,50 @@ class UsuarioController extends Controller
             ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
             ->join('imagenes AS I', 'I.id', 'IV.id_image')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
-            ->where('vehicles.vendedor_id', $id);
-            if ($filtros['q']) {
-                $vehicles = $vehicles->where('vehicles.title', 'LIKE', '%' . rtrim(ltrim($filtros['q'])) . '%');
-            }
-            $vehicles = $vehicles->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->where('vehicles.vendedor_id', $id)
+            ->where('vehicles.activo', '<>', 3);
+        if ($filtros['q']) {
+            $vehicles = $vehicles->where('vehicles.title', 'LIKE', '%' . rtrim(ltrim($filtros['q'])) . '%');
+        }
+        $vehicles = $vehicles->orderBy('vehicles.fecha_creacion', 'DESC')
             ->groupBy('vehicles.id');
         $total_records = count($vehicles->get());
-        if ($request->query('page', null)) {
-            $vehicles = $vehicles->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
-        } else {
-            $vehicles = $vehicles->get();
-        }
+        $vehicles = $vehicles->offset(($filtros['page'] - 1) * 20)->limit(20)->get();
 
-        // $accesorios = Accesorios::select(
-        //     'accesorios.id',
-        //     'accesorios.title',
-        //     'accesorios.precio',
-        //     'accesorios.fecha_creacion',
-        //     'accesorios.activo',
-        //     'accesorios.vendido',
-        //     'UC.nombre AS labelCiudad',
-        //     'I.nombre AS nameImage',
-        //     'I.extension'
-        // )
-        //     ->leftJoin('ubicacion_ciudades AS UC', 'UC.id', 'accesorios.ciudad_id')
-        //     ->leftJoin('imagenes_accesorios AS IV', 'IV.accesorio_id', 'accesorios.id')
-        //     ->leftJoin('imagenes AS I', 'I.id', 'IV.image_id')
-        //     ->where('vendedor_id', $id)
-        //     ->where('accesorios.vendido', 0)
-        //     ->orderBy('accesorios.fecha_creacion', 'DESC')
-        //     ->orderBy('accesorios.id', 'DESC')
-        //     ->groupBy('accesorios.id')
-        //     ->get();
+        $vehicles_inactive = Vehicles::select(
+            'vehicles.id',
+            'vehicles.title',
+            'vehicles.sku',
+            'vehicles.ano',
+            'vehicles.precio',
+            'vehicles.fecha_creacion',
+            'vehicles.activo',
+            'vehicles.vendido',
+            'UC.nombre AS labelCiudad',
+            'I.nombre AS nameImage',
+            'I.extension',
+            'M.nombre AS modeloLabel'
+        )
+            ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
+            ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
+            ->join('imagenes AS I', 'I.id', 'IV.id_image')
+            ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
+            ->where('vehicles.vendedor_id', $id)
+            ->where('vehicles.activo', 3);
+        if ($filtros['q_inactive']) {
+            $vehicles_inactive = $vehicles_inactive->where('vehicles.title', 'LIKE', '%' . rtrim(ltrim($filtros['q_inactive'])) . '%');
+        }
+        $vehicles_inactive = $vehicles_inactive->orderBy('vehicles.fecha_creacion', 'DESC')
+            ->groupBy('vehicles.id');
+        $total_records_inactive = count($vehicles_inactive->get());
+        $vehicles_inactive = $vehicles_inactive->offset(($filtros['page_inactive'] - 1) * 20)->limit(20)->get();
 
         $result = [
             'total_records' => $total_records,
             'vehiculos' => $vehicles,
+            'total_records_inactive' => $total_records_inactive,
+            'vehiculos_inactivos' => $vehicles_inactive,
             'filtros' => $filtros
-            // 'accesorios' => $accesorios
         ];
         return $result;
     }
@@ -203,7 +214,7 @@ class UsuarioController extends Controller
                 ->join('users AS U', 'U.id', 'pregunta.user_id')
                 ->where('pregunta.id', $request->idPregunta)
                 ->first();
-            
+
             $usersQuestion = Respuestas::select('U.id', 'U.nombre', 'U.email')
                 ->join('users AS U', 'U.id', 'respuestas.user_id')
                 ->where('pregunta_id', $request->idPregunta)
@@ -229,7 +240,7 @@ class UsuarioController extends Controller
                     $msj->to($forQuestion);
                 });
             }
-            
+
             foreach ($usersQuestion as $item) {
                 $for = $item->email;
                 Mail::send('mailCommunity', ['nombre' => $item->nombre, 'slug' => $slug], function ($msj) use ($subject, $for) {
