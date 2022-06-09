@@ -969,7 +969,7 @@ class VehiculosController extends Controller
     public function active_vehicle(Request $request)
     {
         try {
-            $vehicle = \DB::table('vehicles')->where('id', $request->id)->update(['activo' => 1]);
+            $vehicle = \DB::table('vehicles')->where('id', $request->id)->update(['activo' => 1, 'fecha_publicacion' => date("Y-m-d H:i:s")]);
 
             $response = [
                 'status' => true,
