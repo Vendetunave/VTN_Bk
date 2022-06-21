@@ -536,7 +536,7 @@ class VehiculosController extends Controller
             $urlMarca = str_replace(' ', '-', $vehiculo->marcaLabel) . '_' . $vehiculo->marcaId;
             $urlModelo = str_replace(' ', '-', $vehiculo->modeloLabel) . '_' . $vehiculo->modeloId;
 
-            $date1 = new DateTime($vehiculo->fecha_publicacion);
+            $date1 = new DateTime($vehiculo->fecha_creacion);
             $date2 = new DateTime();
             $diff = $date1->diff($date2);
             $diasPublicado = $diff->days;
