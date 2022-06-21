@@ -11,6 +11,7 @@ use App\Models\Busquedas;
 use App\Models\Favoritos;
 use App\Models\imagenes;
 use App\Models\Imagenes_vehiculo;
+use DateTime;
 
 class RemoveVehicles
 {
@@ -38,11 +39,11 @@ class RemoveVehicles
         $fechaCaducadaInactivo = date("Y-m-d", strtotime($fecha_actual."- 90 days")); 
 
         $vehiculos = Vehicles::select('id')
-            ->where('fecha_publicacion', '<', $fechaCaducada)
+            ->where('fecha_creacion', '<', $fechaCaducada)
             ->get();
 
         $usuarios = Vehicles::select('vendedor_id')
-            ->where('fecha_publicacion', '<', $fechaCaducada)
+            ->where('fecha_creacion', '<', $fechaCaducada)
             ->groupBy('vendedor_id')
             ->get();
 
@@ -54,15 +55,25 @@ class RemoveVehicles
             'notification' => 1,
         ]);
 
-        $vehiculosIcativos = Vehicles::select('id')
-            ->where('fecha_publicacion', '<', $fechaCaducadaInactivo)
+        $vehiculosInactivos = Vehicles::select('id')
+            ->where('fecha_creacion', '<', $fechaCaducadaInactivo)
             ->where('activo', 1)
             ->get();
         
-        Busquedas::whereIn('vehiculo_id', $vehiculosIcativos)->delete();
-        Favoritos::whereIn('vehiculo_id', $vehiculosIcativos)->delete();
-        imagenes::whereIn('id_vehicle', $vehiculosIcativos)->delete();
-        Imagenes_vehiculo::whereIn('id_vehicle', $vehiculosIcativos)->delete();
-        Vehicles::whereIn('id', $vehiculosIcativos)->delete();
+        Busquedas::whereIn('vehiculo_id', $vehiculosInactivos)->delete();
+        Favoritos::whereIn('vehiculo_id', $vehiculosInactivos)->delete();
+        imagenes::whereIn('id_vehicle', $vehiculosInactivos)->delete();
+        Imagenes_vehiculo::whereIn('id_vehicle', $vehiculosInactivos)->delete();
+        Vehicles::whereIn('id', $vehiculosInactivos)->delete();
+
+        $fechaRelanzamiento = date("Y-m-d", strtotime($fecha_actual."- 7 days")); 
+        $vehicleRelanzamiento = Vehicles::select('id')
+            ->where('fecha_publicacion', '<', $fechaRelanzamiento)
+            ->where('activo', 1)
+            ->get();
+
+        \DB::table('vehicles')->whereIn('id', $vehicleRelanzamiento)->update([
+            'fecha_publicacion' => new DateTime()
+        ]);
     }
 }
