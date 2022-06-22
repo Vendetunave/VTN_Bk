@@ -52,6 +52,7 @@ class InactivePremium
             ->get();
 
         \DB::table('vehicles')->whereIn('id', $vehicleRelanzamiento)->update([
+            'fecha_publicacion' => new DateTime(),
             'order_premium' => new DateTime()
         ]);
     }

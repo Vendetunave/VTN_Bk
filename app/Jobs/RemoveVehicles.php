@@ -39,11 +39,11 @@ class RemoveVehicles
         $fechaCaducadaInactivo = date("Y-m-d", strtotime($fecha_actual."- 90 days")); 
 
         $vehiculos = Vehicles::select('id')
-            ->where('fecha_creacion', '<', $fechaCaducada)
+            ->where('fecha_publicacion', '<', $fechaCaducada)
             ->get();
 
         $usuarios = Vehicles::select('vendedor_id')
-            ->where('fecha_creacion', '<', $fechaCaducada)
+            ->where('fecha_publicacion', '<', $fechaCaducada)
             ->groupBy('vendedor_id')
             ->get();
 
@@ -56,7 +56,7 @@ class RemoveVehicles
         ]);
 
         $vehiculosInactivos = Vehicles::select('id')
-            ->where('fecha_creacion', '<', $fechaCaducadaInactivo)
+            ->where('fecha_publicacion', '<', $fechaCaducadaInactivo)
             ->where('activo', 1)
             ->get();
         
@@ -65,15 +65,5 @@ class RemoveVehicles
         imagenes::whereIn('id_vehicle', $vehiculosInactivos)->delete();
         Imagenes_vehiculo::whereIn('id_vehicle', $vehiculosInactivos)->delete();
         Vehicles::whereIn('id', $vehiculosInactivos)->delete();
-
-        $fechaRelanzamiento = date("Y-m-d", strtotime($fecha_actual."- 7 days")); 
-        $vehicleRelanzamiento = Vehicles::select('id')
-            ->where('fecha_publicacion', '<', $fechaRelanzamiento)
-            ->where('activo', 1)
-            ->get();
-
-        \DB::table('vehicles')->whereIn('id', $vehicleRelanzamiento)->update([
-            'fecha_publicacion' => new DateTime()
-        ]);
     }
 }

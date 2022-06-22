@@ -109,7 +109,7 @@ class UsuarioController extends Controller
         ]);
 
         $filtros = array(
-            'tab' => $request->query('tab') ? 0 : $request->query('tab'),
+            'tab' => $request->query('tab'),
             'page' => $request->query('page') ? $request->query('page') : 1,
             'q' => $request->query('q') ? $request->query('q') : null,
             'page_inactive' => $request->query('page_inactive') ? $request->query('page_inactive') : 1,

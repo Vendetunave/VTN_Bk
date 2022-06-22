@@ -536,7 +536,7 @@ class VehiculosController extends Controller
             $urlMarca = str_replace(' ', '-', $vehiculo->marcaLabel) . '_' . $vehiculo->marcaId;
             $urlModelo = str_replace(' ', '-', $vehiculo->modeloLabel) . '_' . $vehiculo->modeloId;
 
-            $date1 = new DateTime($vehiculo->fecha_creacion);
+            $date1 = new DateTime($vehiculo->fecha_publicacion);
             $date2 = new DateTime();
             $diff = $date1->diff($date2);
             $diasPublicado = $diff->days;
@@ -1182,7 +1182,7 @@ class VehiculosController extends Controller
     public function update_vehicle_admin(Request $request)
     {
         try {
-            $validVehicle = \DB::table('vehicles')->select('precio', 'fecha_publicacion', 'peritaje', 'fecha_creacion')->where('id', $request->id)->first();
+            $validVehicle = \DB::table('vehicles')->select('precio', 'fecha_publicacion', 'peritaje')->where('id', $request->id)->first();
             $imagenes = imagenes::select(
                 \DB::raw('CONCAT("https://vendetunave.s3.amazonaws.com/", imagenes.path, imagenes.nombre, ".", imagenes.extension) AS url, imagenes.id AS imageId'),
                 'order'
@@ -1209,11 +1209,9 @@ class VehiculosController extends Controller
                 }
             }
             $fechaPublicacion = $validVehicle->fecha_publicacion;
-            $fechaCreacion = $validVehicle->fecha_creacion;
 
             if ((int) $validVehicle->precio !== (int) $request->precio) {
                 $fechaPublicacion = date("Y-m-d H:i:s");
-                $fechaCreacion = date("Y-m-d H:i:s");
             }
 
             \DB::table('vehicles')->where('id', $request->id)->update([
@@ -1237,7 +1235,6 @@ class VehiculosController extends Controller
                 'blindado' => $request->blindado,
                 'ciudad_id' => $request->ciudad_id,
                 'confiable' => $request->confiable,
-                'fecha_creacion' => $fechaCreacion,
                 'fecha_publicacion' => $fechaPublicacion,
                 'republicar' => 0
             ]);
@@ -1586,12 +1583,11 @@ class VehiculosController extends Controller
     public function approve_vehicle(Request $request)
     {
         if ($request->approve) {
-            $validVehicle = Vehicles::select('republicar', 'fecha_publicacion', 'fecha_creacion')->where('id', $request->id)->first();
+            $validVehicle = Vehicles::select('republicar', 'fecha_publicacion')->where('id', $request->id)->first();
 
             \DB::table('vehicles')->where('id', $request->id)->update([
                 'activo' => 1,
-                'fecha_publicacion' => ($validVehicle->republicar === 1) ? date("Y-m-d H:i:s") : $validVehicle->fecha_publicacion,
-                'fecha_creacion' => ($validVehicle->republicar === 1) ? date("Y-m-d H:i:s") : $validVehicle->fecha_creacion
+                'fecha_publicacion' => ($validVehicle->republicar === 1) ? date("Y-m-d H:i:s") : $validVehicle->fecha_publicacion
             ]);
         } else {
             \DB::table('vehicles')
