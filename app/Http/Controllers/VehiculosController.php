@@ -97,6 +97,7 @@ class VehiculosController extends Controller
             'permuta' => $request->query('permuta') ? $request->query('permuta') : false,
             'promocion' => $request->query('promocion') ? $request->query('promocion') : false,
             'blindaje' => $request->query('blindaje') ? $request->query('blindaje') : false,
+            'peritaje' => $request->query('peritaje') ? $request->query('peritaje') : false,
             'ano' => $request->query('ano') ? $request->query('ano') : null,
             'anio' => $request->query('anio') ? $request->query('anio') : null,
             'q' => $request->query('q') ? $request->query('q') : null,
@@ -327,6 +328,9 @@ class VehiculosController extends Controller
             $parseBoolean = $filtros['blindaje'] ? 1 : 0;
             $result->where('vehicles.blindado', $parseBoolean);
         }
+        if ($filtros['peritaje']) {
+            $result->where('vehicles.peritaje', '<>', '')->where('vehicles.peritaje', '<>', null);
+        }
         //
         if ($filtros['anio']) {
             $decodeParam = $filtros['anio'];
@@ -417,6 +421,22 @@ class VehiculosController extends Controller
                 $result->orderBy('vehicles.fecha_publicacion', 'DESC');
                 break;
             case 4:
+                $result->orderBy('vehicles.precio', 'DESC');
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
+                break;
+            case 'NUEVO':
+                $result->orderBy('vehicles.condicion', 'ASC');
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
+                break;
+            case 'USADO':
+                $result->orderBy('vehicles.condicion', 'DESC');
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
+                break;
+            case 'PRECIO_MAS_BAJO':
+                $result->orderBy('vehicles.precio', 'ASC');
+                $result->orderBy('vehicles.fecha_publicacion', 'DESC');
+                break;
+            case 'PRECIO_MAS_ALTO':
                 $result->orderBy('vehicles.precio', 'DESC');
                 $result->orderBy('vehicles.fecha_publicacion', 'DESC');
                 break;
