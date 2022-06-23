@@ -1238,6 +1238,7 @@ class VehiculosController extends Controller
                 'title' => $request->title,
                 'descripcion' => $request->descripcion,
                 'condicion' => $request->condicion,
+                'placa' => $request->condicion === 'Nuevo' ? 'Sin Matricular' : $request->placa,
                 'precio' => (int) $request->precio,
                 'tipo_precio' => (int) $request->tipo_precio,
                 'kilometraje' => (int) $request->kilometraje,
