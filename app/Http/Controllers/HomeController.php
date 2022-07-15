@@ -66,7 +66,7 @@ class HomeController extends Controller
     public function config()
     {
 
-        $configuraciones = Config::select('correo_contacto', 'telefono_contacto', 'tyc')->first();
+        $configuraciones = Config::select('correo_contacto', 'telefono_contacto', 'tyc', 'whatsapp_chat')->first();
 
         $response = [
             'configuraciones' => $configuraciones,
