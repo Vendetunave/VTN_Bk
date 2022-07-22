@@ -158,9 +158,9 @@ class UsuarioController extends Controller
             'I.extension',
             'M.nombre AS modeloLabel'
         )
+            ->join('imagenes AS I', 'I.id_vehicle', \DB::raw('vehicles.id AND I.order = 1'))
             ->join('ubicacion_ciudades AS UC', 'UC.id', 'vehicles.ciudad_id')
             ->join('imagenes_vehiculo AS IV', 'IV.id_vehicle', 'vehicles.id')
-            ->join('imagenes AS I', 'I.id', 'IV.id_image')
             ->join('modelos AS M', 'M.id', 'vehicles.modelo_id')
             ->where('vehicles.vendedor_id', $id)
             ->where('vehicles.activo', 3);
