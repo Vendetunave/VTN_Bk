@@ -801,7 +801,7 @@ class VehiculosController extends Controller
 
             $imagesArray = [];
 
-            for ($i = 0; $i < 10; $i++) {
+            for ($i = 0; $i < 15; $i++) {
                 $encontrado = false;
                 foreach ($imagenes as $item) {
                     if (($i + 1) === $item->order) {
