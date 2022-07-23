@@ -119,6 +119,7 @@ $router->group(['prefix' => 'admin',  'middleware' => 'admin'], function () use 
     $router->post('images-vehicle', 'VehiculosController@images_vehicle');
     $router->post('download-zip', 'OtrosController@downloadZip');
     $router->post('remove-zip', 'OtrosController@removeZip');
+    $router->post('delete-image-vehicle', 'VehiculosController@deleteImageVehicle');
 
     $router->get('technical-sheets', 'FichaTecnicaController@get_all_technical_sheets');
     $router->get('form-updated-technical-sheets/{id}', 'FichaTecnicaController@get_by_technical_sheets');

@@ -1155,7 +1155,7 @@ class VehiculosController extends Controller
 
             $imagesArray = [];
 
-            for ($i = 0; $i < 10; $i++) {
+            for ($i = 0; $i < 15; $i++) {
                 $encontrado = false;
                 foreach ($imagenes as $item) {
                     if (($i + 1) === $item->order) {
@@ -1214,7 +1214,7 @@ class VehiculosController extends Controller
 
             $imagesArray = [];
 
-            for ($i = 0; $i < 10; $i++) {
+            for ($i = 0; $i < 15; $i++) {
                 $encontrado = false;
                 foreach ($imagenes as $item) {
                     if (($i + 1) === $item->order) {
@@ -1560,6 +1560,156 @@ class VehiculosController extends Controller
                     Imagenes_vehiculo::where('id_image', $imagesArray[9]->imageId)->delete();
                 }
             }
+            if ($request->hasFile('image11')) {
+                $image = $request->image11;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 11,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[10]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[10]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[10]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image12')) {
+                $image = $request->image12;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 12,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[11]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[11]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[11]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image13')) {
+                $image = $request->image13;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 13,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[12]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[12]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[12]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image14')) {
+                $image = $request->image14;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 14,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[13]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[13]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[13]->imageId)->delete();
+                }
+            }
+            if ($request->hasFile('image15')) {
+                $image = $request->image15;
+                $name = uniqid();
+
+                $imageConvert = (string) Image::make($image)->encode('webp', 100);
+                Storage::disk('s3')->put('vendetunave/images/vehiculos/' . $name . '.' . 'webp', $imageConvert, 'public');
+
+                $imageThumb = Image::make($image);
+
+                $imageThumb->encode('webp', 100);
+
+                Storage::disk('s3')->put('vendetunave/images/thumbnails/' . $name . '300x300.webp', $imageThumb, 'public');
+
+                $imageId = imagenes::insertGetId([
+                    'nombre' => $name,
+                    'path' => 'vendetunave/images/vehiculos/',
+                    'extension' => 'webp',
+                    'order' => 15,
+                    'id_vehicle' => $request->id,
+                    'new_image' => 2
+                ]);
+                Imagenes_vehiculo::insert([
+                    'id_vehicle' => $request->id,
+                    'id_image' => $imageId
+                ]);
+                if ($imagesArray[14]->imageId !== '') {
+                    imagenes::where('id', $imagesArray[14]->imageId)->delete();
+                    Imagenes_vehiculo::where('id_image', $imagesArray[14]->imageId)->delete();
+                }
+            }
 
             if ($request->hasFile('peritaje')) {
                 $pdfName = uniqid() . '.' . 'pdf';
@@ -1584,6 +1734,16 @@ class VehiculosController extends Controller
 
             return $response;
         }
+    }
+
+    public function deleteImageVehicle(Request $request)
+    {
+        $images = \DB::table('imagenes')
+                ->where('id_vehicle', $request->id)
+                ->where('order', $request->order)
+                ->delete();
+
+        return ['status' => true, 'message' => 'Datos actualizados correctamente!'];
     }
 
     public function dependable_vehicle(Request $request)
